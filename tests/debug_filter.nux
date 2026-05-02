@@ -1,0 +1,3 @@
+let users = [{name: "Fernanda", age: 25, active: true}, {name: "Carlos", age: 30, active: false}, {name: "Ana", age: 28, active: true}]
+let active = users |> filter((u) => u.active == true)
+print(active.length)

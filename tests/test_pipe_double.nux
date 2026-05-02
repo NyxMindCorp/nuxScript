@@ -1,0 +1,7 @@
+fn double(x :: Int) -> Int
+    x * 2
+end
+
+let x = 5
+let y = x |> double
+print(y)

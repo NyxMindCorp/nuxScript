@@ -1,0 +1,33 @@
+# Hello World
+let message = "Hello, nuxScript!"
+print(message)
+
+# Math
+let a = 10
+let b = 5
+let sum = a + b
+print(sum)
+
+# Function
+fn add(x, y)
+    x + y
+end
+
+print(add(3, 4))
+
+# If expression
+let status = if a > b
+    "a is bigger"
+else
+    "b is bigger"
+end
+print(status)
+
+# List
+let numbers = [1, 2, 3, 4, 5]
+print(numbers[0])
+print(len(numbers))
+
+# Pipe (simple)
+let doubled = [1, 2, 3]
+print(doubled)

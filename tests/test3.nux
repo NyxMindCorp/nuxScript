@@ -1,0 +1,3 @@
+let user = {name: "test", active: true}
+let f = .active
+print(f(user))

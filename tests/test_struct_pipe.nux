@@ -1,0 +1,13 @@
+struct User
+    name   :: String
+    age    :: Int
+    active :: Bool
+end
+
+let users = [
+    User(name: "Fernanda", age: 25, active: true)
+    User(name: "Carlos", age: 30, active: false)
+]
+
+let active = users |> filter((u) -> u.active == true)
+print(active.length)

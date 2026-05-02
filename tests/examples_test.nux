@@ -1,0 +1,138 @@
+# nuxScript Examples
+
+## Hello World
+```
+fn main()
+    print("Hello, nuxScript!")
+end
+
+main()
+```
+
+## Variables and Types
+```
+let name    = "Fernando"
+let! age    = 28
+let count   = 0
+const MAX   = 100
+
+let maybeName :: ?String = nil
+let result    = Result[Int, Err]
+```
+
+## Functions
+```
+fn greet(name :: String) -> String
+    "Hello, " + name + "!"
+end
+
+fn add(a :: Int, b :: Int) -> Int
+    a + b
+end
+
+fn safe_div(a :: Int, b :: Int) -> Result[Int, Err]
+    if b == 0
+        Err("division by zero")
+    else
+        Ok(a / b)
+    end
+end
+```
+
+## Structs and Enums
+```
+struct Point
+    x :: Int
+    y :: Int
+end
+
+enum Shape
+    Circle(radius :: Int)
+    Rectangle(width :: Int, height :: Int)
+    Empty
+end
+
+fn area(shape :: Shape) -> Int
+    match shape
+        Circle(r)       -> 3 * r * r
+        Rectangle(w, h) -> w * h
+        Empty           -> 0
+    end
+end
+```
+
+## Pipe Operator
+```
+let numbers = [1, 2, 3, 4, 5]
+
+numbers
+    |> filter(_ > 2)
+    |> map(_ * 2)
+    |> reduce(0, _ + _)
+```
+
+## Pattern Matching
+```
+enum Color
+    Red
+    Green
+    Blue
+    Custom(r :: Int, g :: Int, b :: Int)
+end
+
+fn describe(color :: Color) -> String
+    match color
+        Red           -> "Vermelho"
+        Green         -> "Verde"
+        Blue          -> "Azul"
+        Custom(r, g, b) -> "RGB({r}, {g}, {b})"
+    end
+end
+```
+
+## Control Flow
+```
+if count > 10
+    print("big")
+else if count > 5
+    print("medium")
+else
+    print("small")
+end
+
+for i in range(10)
+    print(i)
+end
+```
+
+## Null Safety
+```
+let name = maybeName ?? "Anonymous"
+
+let length = text?.size ?? 0
+```
+
+## Full Program
+```
+use std::io
+
+struct User
+    name   :: String
+    age    :: Int
+    active :: Bool
+end
+
+fn main() -> Result[::Int, Err]
+    let users = [
+        {name: "Fernanda", age: 25, active: true}
+        {name: "Carlos", age: 30, active: false}
+        {name: "Ana", age: 28, active: true}
+    ]
+
+    let active = users |> filter(.active)
+
+    print("Active users: {active.length}")
+
+    Ok(0)
+end
+```

@@ -1,0 +1,8 @@
+struct User
+    name   :: String
+    age    :: Int
+    active :: Bool
+end
+
+let u = User(name: "Test", age: 20, active: true)
+print(u.active)

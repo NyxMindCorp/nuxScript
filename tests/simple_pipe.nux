@@ -1,0 +1,2 @@
+let users = [1,2,3]
+users |> print

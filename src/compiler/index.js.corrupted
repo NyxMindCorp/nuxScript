@@ -1,0 +1,19 @@
+    compile() {
+        for (const node of this.ast) {
+            this.compileNode(node);
+        }
+        this.emit(OPCODES.HALT);
+        console.log('=== COMPILED INSTRUCTIONS ===');
+        for (let i = 0; i < this.instructions.length; i++) {
+            const ins = this.instructions[i];
+            console.log(`${i}: ${ins.opcode}${ins.operand !== null ? ` ${ins.operand}` : ''}`);
+        }
+        console.log('=== CONSTANTS ===');
+        this.constants.forEach((c, i) => {
+            console.log(`${i}: ${JSON.stringify(c)}`);
+        });
+        return {
+            instructions: this.instructions,
+            constants: this.constants,
+        };
+    }

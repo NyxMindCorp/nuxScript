@@ -1,0 +1,24 @@
+# Type checking examples
+
+let name :: String = "Fernando"
+let age :: Int = 28
+let active :: Bool = true
+
+fn add(a :: Int, b :: Int) -> Int
+    a + b
+end
+
+let result = add(10, 20)
+
+# List type inference
+let nums = [1, 2, 3]
+
+# If expression type inference
+let bigger = if 10 > 5
+    100
+else
+    200
+end
+
+print("Types test passed!")
+print("Result: " + result)

@@ -1,0 +1,4 @@
+let users = [{name: "test", active: true}]
+print(users)
+let active = users |> filter(.active)
+print(active)

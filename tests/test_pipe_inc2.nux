@@ -1,0 +1,6 @@
+fn inc(x :: Int) -> Int
+    x + 1
+end
+
+let result = 5 |> inc
+print(result)

@@ -1,0 +1,5 @@
+let users = [{active: true}, {active: false}]
+let f = (u) => u.active == true
+let result = filter(f, users)
+print(result)
+print(type(result))

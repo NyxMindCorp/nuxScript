@@ -1,0 +1,16 @@
+{
+  "name": "nuxscript",
+  "version": "0.1.0",
+  "description": "A typed, expression-oriented language with a pleasing, minimal syntax",
+  "main": "src/index.js",
+  "bin": {
+    "nux": "./bin/nux.js"
+  },
+  "scripts": {
+    "test": "node --test tests/**/*.js",
+    "build": "node src/compiler/index.js",
+    "run": "node bin/nux.js"
+  },
+  "keywords": ["language", "compiler", "interpreter", "nuxscript"],
+  "license": "MIT"
+}

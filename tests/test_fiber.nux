@@ -1,0 +1,1 @@
+let f = fiber { yield 1; yield 2; }

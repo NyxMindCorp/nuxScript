@@ -1,0 +1,10 @@
+# Simple try-catch
+
+let x = try
+    error("fail")
+    42
+catch e
+    0
+end
+
+print(x)

@@ -1,0 +1,2 @@
+let users = [{name: "Fernanda", age: 25, active: true}]
+print(.active)

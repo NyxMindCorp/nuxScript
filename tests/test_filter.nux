@@ -1,0 +1,3 @@
+let users = [{active: true}, {active: false}, {active: true}]
+let active = users |> filter((u) => u.active == true)
+print(active.length)

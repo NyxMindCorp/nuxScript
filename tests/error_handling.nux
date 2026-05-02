@@ -1,0 +1,31 @@
+# Error handling examples
+
+# Try-catch with error
+let result = try
+    error("something went wrong")
+    42
+catch err
+    print("Caught: " + err)
+    0
+end
+
+print("result = " + result)
+
+# Try-catch without error
+let ok = try
+    100
+catch e
+    -1
+end
+
+print("ok = " + ok)
+
+# Nested try-catch
+let nested = try
+    error("inner error")
+    "should not reach"
+catch inner
+    "caught inner"
+end
+
+print("nested = " + nested)
