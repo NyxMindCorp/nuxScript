@@ -300,7 +300,6 @@ class VM {
                             this.running = false;
                         }
                         break;
-                    }
                     this.stack.push(result);
                 } else if (fn && fn.instructions) {
                     const vm = new VM({
@@ -516,7 +515,6 @@ class VM {
                 this.yieldedValue = value;
                 this.running = false; // suspend the fiber VM
                 break;
-            }
             case OPCODES.FIBER: {
                 const fiberInfo = this.constants[operand];
                 const fiberId = ++this.fiberIdCounter;
@@ -530,7 +528,6 @@ class VM {
                 // Push a fiber reference onto the stack
                 this.stack.push({ __fiber__: fiberId, vm: fiberVm });
                 break;
-            }
             default:
                 throw new Error(`Unknown opcode: ${opcode}`);
         }
@@ -538,3 +535,40 @@ class VM {
 }
 
 module.exports = { VM };
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
+}
