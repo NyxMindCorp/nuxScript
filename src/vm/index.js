@@ -176,98 +176,82 @@ class VM {
                 const a = this.stack.pop();
                 this.stack.push(a + b);
                 break;
-            }
             case OPCODES.SUB: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a - b);
                 break;
-            }
             case OPCODES.MUL: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a * b);
                 break;
-            }
             case OPCODES.DIV: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 if (b === 0) throw new Error('Division by zero');
                 this.stack.push(a / b);
                 break;
-            }
             case OPCODES.MOD: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a % b);
                 break;
-            }
             case OPCODES.POW: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(Math.pow(a, b));
                 break;
-            }
             case OPCODES.NEG: {
                 const a = this.stack.pop();
                 this.stack.push(-a);
                 break;
-            }
 
             case OPCODES.EQ: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a === b);
                 break;
-            }
             case OPCODES.NEQ: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a !== b);
                 break;
-            }
             case OPCODES.LT: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a < b);
                 break;
-            }
             case OPCODES.GT: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a > b);
                 break;
-            }
             case OPCODES.LTE: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a <= b);
                 break;
-            }
             case OPCODES.GTE: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a >= b);
                 break;
-            }
 
             case OPCODES.AND: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a && b);
                 break;
-            }
             case OPCODES.OR: {
                 const b = this.stack.pop();
                 const a = this.stack.pop();
                 this.stack.push(a || b);
                 break;
-            }
             case OPCODES.NOT: {
                 const a = this.stack.pop();
                 this.stack.push(!a);
                 break;
-            }
 
             case OPCODES.JUMP:
                 this.pc = operand - 1;
@@ -278,14 +262,12 @@ class VM {
                     this.pc = operand - 1;
                 }
                 break;
-            }
             case OPCODES.JUMP_IF_TRUE: {
                 const cond = this.stack.pop();
                 if (cond) {
                     this.pc = operand - 1;
                 }
                 break;
-            }
 
             case OPCODES.PM_JUMP_IF_FALSE: {
                 const cond = this.stack.pop();
@@ -293,7 +275,6 @@ class VM {
                     this.pc = operand - 1;
                 }
                 break;
-            }
 
             case OPCODES.CALL: {
                 const argc = operand;
@@ -336,18 +317,15 @@ class VM {
                     throw new Error(`Cannot call non-function: ${typeof fn}`);
                 }
                 break;
-            }
 
             case OPCODES.RETURN: {
                 this.running = false;
                 break;
-            }
 
             case OPCODES.MAKE_FUNCTION: {
                 const fnInfo = this.constants[operand];
                 this.stack.push(fnInfo);
                 break;
-            }
 
             case OPCODES.MAKE_LIST: {
                 const items = [];
@@ -356,7 +334,6 @@ class VM {
                 }
                 this.stack.push(items);
                 break;
-            }
 
             case OPCODES.MAKE_MAP: {
                 const pairs = {};
@@ -367,7 +344,6 @@ class VM {
                 }
                 this.stack.push(pairs);
                 break;
-            }
 
             case OPCODES.MAKE_STRUCT: {
                 const structInfo = this.constants[operand];
@@ -378,20 +354,17 @@ class VM {
                 instance.__struct__ = structInfo.name;
                 this.stack.push(instance);
                 break;
-            }
 
             case OPCODES.MAKE_ENUM: {
                 const enumInfo = this.constants[operand];
                 this.stack.push(enumInfo);
                 break;
-            }
 
             case OPCODES.GET_FIELD: {
                 const obj = this.stack.pop();
                 if (obj == null) throw new Error(`Cannot get field '${operand}' of null`);
                 this.stack.push(obj[operand]);
                 break;
-            }
 
             case OPCODES.LOAD_SUBSCRIPT: {
                 const index = this.stack.pop();
@@ -406,11 +379,9 @@ class VM {
                     throw new Error(`Cannot subscript ${typeof obj}`);
                 }
                 break;
-            }
 
             case OPCODES.PIPE: {
                 break;
-            }
 
             case OPCODES.NULL:
                 this.stack.push(null);
@@ -420,7 +391,6 @@ class VM {
                 const a = this.stack.pop();
                 this.stack.push(a === null || a === undefined);
                 break;
-            }
 
             case OPCODES.DUP:
                 this.stack.push(this.stack[this.stack.length - 1]);
@@ -436,7 +406,6 @@ class VM {
                 this.stack.push(a);
                 this.stack.push(b);
                 break;
-            }
 
             case OPCODES.LOOP_START:
                 this.loopStack.push(this.pc);
@@ -457,7 +426,6 @@ class VM {
                     this.stack.push(false); // no more
                 }
                 break;
-            }
 
             case OPCODES.LOOP_END:
                 this.loopStack.pop();
@@ -485,7 +453,6 @@ class VM {
                     throw error instanceof Error ? error : new Error(String(error));
                 }
                 break;
-            }
 
             case OPCODES.SPAWN: {
                 // Create a fiber from the compiled body
@@ -510,7 +477,6 @@ class VM {
                 // Return fiber reference
                 this.stack.push({ __fiber__: fiberId, vm: fiberVm });
                 break;
-            }
 
             case OPCODES.AWAIT_FIBER: {
                 const fiberRef = this.stack.pop();
@@ -526,7 +492,6 @@ class VM {
                     this.stack.push(null);
                 }
                 break;
-            }
 
             case OPCODES.PUSH: {
                 const arr = this.stack.pop();
@@ -536,7 +501,6 @@ class VM {
                 }
                 this.stack.push(arr);
                 break;
-            }
 
             case OPCODES.MAKE_STRING: {
                 const parts = [];
@@ -545,40 +509,12 @@ class VM {
                 }
                 this.stack.push(parts.join(''));
                 break;
-            }
 
             case OPCODES.FIBER_YIELD: {
                 const value = this.stack.pop();
                 this.hasYielded = true;
                 this.yieldedValue = value;
                 this.running = false; // suspend the fiber VM
-                break;
-            }
-            case OPCODES.FIBER_RESUME: {
-                // Pop the fiber reference from the stack
-                const fiberRef = this.stack.pop();
-                if (!fiberRef || !fiberRef.__fiber__) {
-                    throw new Error("Invalid fiber reference");
-                }
-                const fiber = this.fibers.get(fiberRef.__fiber__);
-                if (!fiber) {
-                    throw new Error("Fiber not found");
-                }
-                const fiberVm = fiber.vm;
-                // Reset suspension state
-                fiberVm.hasYielded = false;
-                fiberVm.running = true;
-                // Run the fiber VM
-                const result = fiberVm.run();
-                // Check if the fiber yielded
-                if (fiberVm.hasYielded) {
-                    // The fiber yielded: push the yielded value onto our stack
-                    this.stack.push(fiberVm.yieldedValue);
-                    // The fiber is now suspended (we leave it as is)
-                } else {
-                    // The fiber finished (or was halted without yielding)
-                    this.stack.push(result);
-                }
                 break;
             }
             case OPCODES.FIBER: {

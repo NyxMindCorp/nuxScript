@@ -804,7 +804,6 @@ class Compiler {
         this.compileNode(node.fiber);
         this.emit(OPCODES.AWAIT_FIBER);
     }
-}
 
 
 
@@ -819,11 +818,12 @@ class Compiler {
         const idx = this.addConstant(fnInfo);
         // Emit a FIBER opcode (we need to define it in OPCODES) that takes the constant index
         this.emit(OPCODES.FIBER, idx);
-    },
+    }
 
     compileYieldExpr(node) {
         this.compileNode(node.value);
         this.emit(OPCODES.FIBER_YIELD);
-    },
+    }
 
+}
 module.exports = { Compiler, OPCODES };
