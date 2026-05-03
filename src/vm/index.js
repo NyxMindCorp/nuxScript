@@ -7,6 +7,13 @@ const { OPCODES } = require('../compiler');
 const { ReflectionBuiltin } = require('../reflection');
 const { CodeGenerator } = require('../codegen');
 const { ExternalParser } = require('../parser/external');
+const { regexBuiltins, parseRegexLiteral } = require('../regex');
+const { queryBuiltins } = require('../query');
+const { concurrencyBuiltins, Actor, Channel, Process, ProcessSystem } = require('../concurrency');
+const { metaBuiltins, MacroEngine, ASTManipulator, CompileTime } = require('../meta');
+const { dataStructBuiltins, Tuple, Set, Dict, Tree, Heap, Graph } = require('../datastructs');
+const { typeSystemBuiltins, TypeProvider, TypeDef, Refinement } = require('../typesys');
+const { operatorBuiltins, evalOperator, hasOperator, listOperators, defineOperator } = require('../operators');
 
 const __THROW__ = Symbol('THROW');
 
@@ -172,6 +179,138 @@ const builtins = {
 
     // AST helpers
     ast_node: (type, props) => ({ type, ...props }),
+
+    // Regex engine
+    r: parseRegexLiteral,
+    regex_match: regexBuiltins.match,
+    regex_test: regexBuiltins.test,
+    regex_replace: regexBuiltins.replace,
+    regex_split: regexBuiltins.split,
+    regex_find_all: regexBuiltins.findAll,
+    regex_extract: regexBuiltins.extract,
+    regex_compile: regexBuiltins.compile,
+    regex_is_valid: regexBuiltins.isValid,
+    regex_escape: regexBuiltins.escape,
+
+    // Query system
+    select: queryBuiltins.select,
+    where: queryBuiltins.where,
+    order_by: queryBuiltins.orderBy,
+    group_by: queryBuiltins.groupBy,
+    join: queryBuiltins.join,
+    count: queryBuiltins.count,
+    sum: queryBuiltins.sum,
+    avg: queryBuiltins.avg,
+    min: queryBuiltins.min,
+    max: queryBuiltins.max,
+    pluck: queryBuiltins.pluck,
+    distinct: queryBuiltins.distinct,
+    union: queryBuiltins.union,
+    intersect: queryBuiltins.intersect,
+    diff: queryBuiltins.diff,
+    limit: queryBuiltins.limit,
+    take: queryBuiltins.take,
+    skip: queryBuiltins.skip,
+    offset: queryBuiltins.offset,
+
+    // Concurrency (actors, channels)
+    actor: concurrencyBuiltins.actor,
+    send_to: concurrencyBuiltins.send,
+    tell: concurrencyBuiltins.tell,
+    ask: concurrencyBuiltins.ask,
+    stop_actor: concurrencyBuiltins.stop,
+    actors: concurrencyBuiltins.actors,
+    actor_of: concurrencyBuiltins.actor_of,
+    channel: concurrencyBuiltins.channel,
+    channel_buffer: concurrencyBuiltins.channel_buffer,
+    receive_from: concurrencyBuiltins.receive_from,
+    poll: concurrencyBuiltins.poll,
+    select: concurrencyBuiltins.select,
+    alts: concurrencyBuiltins.alts,
+    spawn: concurrencyBuiltins.spawn,
+    kill: concurrencyBuiltins.kill,
+    killall: concurrencyBuiltins.killall,
+    sleep: concurrencyBuiltins.sleep,
+    after: concurrencyBuiltins.after,
+    every: concurrencyBuiltins.every,
+
+    // Meta-programming
+    macro_define: metaBuiltins.macro_define,
+    macro_expand: metaBuiltins.macro_expand,
+    macro_eval: metaBuiltins.macro_eval,
+    ast_walk: metaBuiltins.ast_walk,
+    ast_map: metaBuiltins.ast_map,
+    ast_find: metaBuiltins.ast_find,
+    ast_clone: metaBuiltins.ast_clone,
+    const_eval: metaBuiltins.const_eval,
+
+    // Data structures
+    tuple: dataStructBuiltins.tuple,
+    tuple_get: dataStructBuiltins.tuple_get,
+    tuple_len: dataStructBuiltins.tuple_len,
+    tuple_first: dataStructBuiltins.tuple_first,
+    tuple_last: dataStructBuiltins.tuple_last,
+    tuple_zip: dataStructBuiltins.tuple_zip,
+    set: dataStructBuiltins.set,
+    set_add: dataStructBuiltins.set_add,
+    set_has: dataStructBuiltins.set_has,
+    set_union: dataStructBuiltins.set_union,
+    set_intersect: dataStructBuiltins.set_intersect,
+    dict: dataStructBuiltins.dict,
+    dict_get: dataStructBuiltins.dict_get,
+    dict_set: dataStructBuiltins.dict_set,
+    dict_keys: dataStructBuiltins.dict_keys,
+    dict_values: dataStructBuiltins.dict_values,
+    tree_leaf: dataStructBuiltins.tree_leaf,
+    tree_node: dataStructBuiltins.tree_node,
+    tree_map: dataStructBuiltins.tree_map,
+    tree_find: dataStructBuiltins.tree_find,
+    tree_depth: dataStructBuiltins.tree_depth,
+    tree_preorder: dataStructBuiltins.tree_preorder,
+    heap_min: dataStructBuiltins.heap_min,
+    heap_max: dataStructBuiltins.heap_max,
+    heap_push: dataStructBuiltins.heap_push,
+    heap_pop: dataStructBuiltins.heap_pop,
+    graph: dataStructBuiltins.graph,
+    graph_undirected: dataStructBuiltins.graph_undirected,
+    graph_add_node: dataStructBuiltins.graph_add_node,
+    graph_add_edge: dataStructBuiltins.graph_add_edge,
+    graph_bfs: dataStructBuiltins.graph_bfs,
+    graph_dfs: dataStructBuiltins.graph_dfs,
+
+    // Type system
+    typeof: typeSystemBuiltins.type_of,
+    type_of: typeSystemBuiltins.type_of,
+    is_type: typeSystemBuiltins.is_type,
+    struct_type: typeSystemBuiltins.struct_type,
+    enum_type: typeSystemBuiltins.enum_type,
+    union_type: typeSystemBuiltins.union_type,
+    optional_type: typeSystemBuiltins.optional_type,
+    result_type: typeSystemBuiltins.result_type,
+    brand: typeSystemBuiltins.brand,
+    newtype: (name, base) => typeSystemBuiltins.newtype(name, base),
+    opaque: (name) => typeSystemBuiltins.opaque_type(name),
+    // Refinements
+    pos: typeSystemBuiltins.pos,
+    neg: typeSystemBuiltins.neg,
+    nonzero: typeSystemBuiltins.nonzero,
+    non_empty: typeSystemBuiltins.non_empty,
+    email: typeSystemBuiltins.email,
+    uuid: typeSystemBuiltins.uuid,
+    url: typeSystemBuiltins.url,
+    in_range: typeSystemBuiltins.in_range,
+
+    // Custom operators
+    eval_op: (op, left, right) => evalOperator(op, left, right),
+    has_op: (op) => hasOperator(op),
+    list_ops: () => listOperators(),
+    def_op: (op, fn, opts) => defineOperator(op, fn, opts),
+    pipe: operatorBuiltins.pipe,
+    compose: operatorBuiltins.compose,
+    null_safe: operatorBuiltins.null_safe,
+    coalesce: operatorBuiltins.coalesce,
+    range_op: operatorBuiltins.range,
+    cmp: operatorBuiltins.cmp,
 };
 
 class VM {
