@@ -32,7 +32,7 @@
       "command": "npx",
       "args": ["@testsprite/testsprite-mcp@latest"],
       "env": {
-        "API_KEY": "your-api-key"
+        "API_KEY": "sk-user-nhlb6tSlmUyP0q4e6RJs5Q2tHA22Dlb4k-Ra68UwQsUqpR1v_M3Q_AR7yvX62sslC33upZJ3k3Sb5uaxGVrJgQVPpVVbNlWJu9Tts0Dsq2GvrHHxUZXako0_AbBWPUl22_4"
       }
     }
   }
