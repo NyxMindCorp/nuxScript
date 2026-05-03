@@ -5,13 +5,15 @@ A programming language with exclusive features: regex engine, query system, acto
 ## Installation
 
 ```bash
-# Local (recommended)
-npm install nuxscript-lib
-
-# Global
+# Global (recommended)
 npm i -g nuxscript-lib
 
+# Local
+npm install nuxscript-lib
+
 # Usage
+nuxscript run <file.nux>
+# or
 nux run <file.nux>
 ```
 
