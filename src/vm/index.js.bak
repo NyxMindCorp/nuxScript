@@ -4,11 +4,9 @@
  */
 
 const { OPCODES } = require('../compiler');
-const { ReflectionBuiltin } = require('../reflection');
-const { CodeGenerator } = require('../codegen');
-const { ExternalParser } = require('../parser/external');
 
 const __THROW__ = Symbol('THROW');
+const __FIBER_DONE__ = Symbol('FIBER_DONE');
 
 // Create namespace objects for stdlib
 const stdlib_math = {
@@ -90,90 +88,35 @@ const builtins = {
     range: (n) => Array.from({ length: n }, (_, i) => i),
     assert: (cond) => { if (!cond) return __THROW__; return true; },
     error: (msg) => __THROW__,
+
+    // Result type constructors
     Ok: (val) => ({ __variant__: 'Ok', value: val }),
     Err: (val) => ({ __variant__: 'Err', value: val }),
+
+    // Option type constructors
     Some: (val) => ({ __variant__: 'Some', value: val }),
     None: () => ({ __variant__: 'None' }),
-    type: (val) => typeof val,
-    isOk: (val) => val && val.__variant__ === 'Ok',
-    isErr: (val) => val && val.__variant__ === 'Err',
-    isSome: (val) => val && val.__variant__ === 'Some',
-    isNone: (val) => val && val.__variant__ === 'None',
-    // Stdlib namespaces
-    math: stdlib_math,
-    list: stdlib_list,
-    string: stdlib_string,
-    map: stdlib_map,
-    // IO
-    readFile: (path) => require('fs').readFileSync(path, 'utf-8'),
-    writeFile: (path, content) => require('fs').writeFileSync(path, content),
-    // Fiber support
+
+        // Stdlib namespaces
+        math: stdlib_math,
+        list: stdlib_list,
+        string: stdlib_string,
+        map: stdlib_map,
+
+        // List functions (top-level for pipe operator)
+        filter: stdlib_list.filter,
+        map: stdlib_list.map,
+        reduce: stdlib_list.reduce,
+
+        // Sleep for async/fibers
+    sleep: (ms) => new Promise(r => setTimeout(r, ms)),
+
+    // Fiber management
     fiber_create: (fn, constants) => {
         const vm = new VM({ instructions: fn.instructions, constants: fn.constants });
         return vm;
     },
-    resume: (fiberRef) => {
-        if (!fiberRef || !fiberRef.__fiber__) {
-            throw new Error("Invalid fiber reference");
-        }
-        const fiber = builtins.fibers.get(fiberRef.__fiber__);
-        if (!fiber) {
-            throw new Error("Fiber not found");
-        }
-        const fiberVm = fiber.vm;
-        const result = fiberVm.run();
-        if (fiberVm.hasYielded) {
-            return { status: "running", value: fiberVm.yieldedValue };
-        } else {
-            return { status: "finished", value: result };
-        }
-    },
-    fibers: new Map(),
-
-    // Reflection functions
-    reflect: (target) => ReflectionBuiltin.reflect(target),
-    reflect_type: (val) => ReflectionBuiltin.typeOf(val),
-    reflect_fn: (fn) => ReflectionBuiltin.reflectFn(fn),
-    reflect_struct: (obj) => ReflectionBuiltin.reflectStruct(obj),
-    reflect_enum: (variant) => ReflectionBuiltin.reflectEnum(variant),
-    get_type: (val) => ReflectionBuiltin.getType(val),
-    type_of: (val) => ReflectionBuiltin.typeOf(val),
-    is_type: (val, expected) => ReflectionBuiltin.isType(val, expected),
-    get_meta: (fn) => ReflectionBuiltin.getMetadata(fn),
-    set_meta: (fn, meta) => ReflectionBuiltin.setMetadata(fn, meta),
-
-    // Code generation
-    generate: (node) => {
-        const cg = new CodeGenerator();
-        return cg.generate(node);
-    },
-    pretty_print: (node) => {
-        const cg = new CodeGenerator({ indent: '    ' });
-        return cg.prettyPrint(node);
-    },
-    ast_to_code: (node) => {
-        const cg = new CodeGenerator();
-        return cg.generate(node);
-    },
-
-    // External code parsing
-    parse_js: (code) => ExternalParser.parseJS(code),
-    tokenize_js: (code) => ExternalParser.prototype.tokenizeJS.call({ tokenizeJS: ExternalParser.prototype.tokenizeJS }, code),
-    analyze_js: (code) => {
-        const ast = ExternalParser.parseJS(code);
-        return {
-            ast,
-            tokens: [],
-            statCount: ast.body ? ast.body.length : 0,
-            functions: ast.body ? ast.body.filter(n => n.type === 'FnDeclaration').map(f => f.name) : [],
-            classes: ast.body ? ast.body.filter(n => n.type === 'ClassDeclaration').map(c => c.name) : [],
-        };
-    },
-
-    // AST helpers
-    ast_node: (type, props) => ({ type, ...props }),
-};
-
+    resume: (fiberRef, optArg = null) => {        if (!fiberRef || !fiberRef.__fiber__) {            throw new Error("Invalid fiber reference");        }        const fiber = this.fibers.get(fiberRef.__fiber__);        if (!fiber) {            throw new Error("Fiber not found");        }        const fiberVm = fiber.vm;        // If an argument is provided, we need to set it as the value of the last yield        // For simplicity, we will push the optArg onto the fiberVm stack and then resume.        // However, our current design does not support passing a value into a yield.        // We will ignore optArg for now and just resume the fiber.        // Run the fiber VM        const result = fiberVm.run();        // Check if the fiber yielded        if (fiberVm.hasYielded) {            // The fiber yielded: return an object indicating it is running with the yielded value            return { status: "running", value: fiberVm.yieldedValue };        } else {            // The fiber finished (or was halted without yielding)            return { status: "finished", value: result };        }    },};
 class VM {
     constructor(bytecode, parent = null) {
         this.instructions = bytecode.instructions;
@@ -185,8 +128,11 @@ class VM {
         this.running = true;
         this.loopStack = [];
         this.tryStack = [];
+        // Fiber suspension state
         this.hasYielded = false;
         this.yieldedValue = null;
+
+        // Fiber state
         this.fibers = new Map();
         this.fiberIdCounter = 0;
         this.parent = parent;
@@ -206,6 +152,7 @@ class VM {
 
     execute(instruction) {
         const { opcode, operand } = instruction;
+
         switch (opcode) {
             case OPCODES.HALT:
                 this.running = false;
@@ -262,7 +209,7 @@ class VM {
                 this.stack.push(Math.pow(a, b));
                 break;
             }
-            case OPCODES.NEG: {
+case OPCODES.NEG: {
                 const a = this.stack.pop();
                 this.stack.push(-a);
                 break;
@@ -391,7 +338,6 @@ class VM {
                     throw new Error(`Cannot call non-function: ${typeof fn}`);
                 }
                 break;
-            }
 
             case OPCODES.RETURN: {
                 this.running = false;
@@ -498,19 +444,20 @@ class VM {
                 break;
 
             case OPCODES.LOOP_ITERATE: {
+                // Stack: [list, index] (list pushed first, index pushed second, index on top)
+                // Pop index first, then list
                 const index = this.stack.pop();
                 const list = this.stack.pop();
                 if (Array.isArray(list) && index < list.length) {
                     this.stack.push(list[index]);
                     this.stack.push(index + 1);
-                    this.stack.push(true);
+                    this.stack.push(true); // has more
                 } else {
                     this.stack.push(null);
                     this.stack.push(index);
-                    this.stack.push(false);
+                    this.stack.push(false); // no more
                 }
                 break;
-            }
 
             case OPCODES.LOOP_END:
                 this.loopStack.pop();
@@ -538,23 +485,30 @@ class VM {
                     throw error instanceof Error ? error : new Error(String(error));
                 }
                 break;
-            }
 
             case OPCODES.SPAWN: {
+                // Create a fiber from the compiled body
                 const fiberInfo = this.constants[operand];
                 const fiberId = fiberInfo.id;
+
+                // Create a new VM for this fiber
                 const fiberVm = new VM({
                     instructions: fiberInfo.body.instructions,
                     constants: fiberInfo.body.constants || fiberInfo.constants,
                 }, this);
+
+                // Copy current variables to fiber
                 fiberVm.variables = new Map(this.variables);
+
+                // Store the fiber
                 this.fibers.set(fiberId, {
                     vm: fiberVm,
                     status: 'running',
                 });
+
+                // Return fiber reference
                 this.stack.push({ __fiber__: fiberId, vm: fiberVm });
                 break;
-            }
 
             case OPCODES.AWAIT_FIBER: {
                 const fiberRef = this.stack.pop();
@@ -570,7 +524,6 @@ class VM {
                     this.stack.push(null);
                 }
                 break;
-            }
 
             case OPCODES.PUSH: {
                 const arr = this.stack.pop();
@@ -580,7 +533,6 @@ class VM {
                 }
                 this.stack.push(arr);
                 break;
-            }
 
             case OPCODES.MAKE_STRING: {
                 const parts = [];
@@ -589,15 +541,13 @@ class VM {
                 }
                 this.stack.push(parts.join(''));
                 break;
-            }
 
             case OPCODES.FIBER_YIELD: {
                 const value = this.stack.pop();
                 this.hasYielded = true;
                 this.yieldedValue = value;
-                this.running = false;
+                this.running = false; // suspend the fiber VM
                 break;
-            }
             case OPCODES.FIBER: {
                 const fiberInfo = this.constants[operand];
                 const fiberId = ++this.fiberIdCounter;
@@ -605,15 +555,16 @@ class VM {
                     instructions: fiberInfo.instructions,
                     constants: fiberInfo.constants || fiberInfo.body?.constants,
                 }, this);
+                // Inherit variables from parent
                 fiberVm.variables = new Map(this.variables);
                 this.fibers.set(fiberId, { vm: fiberVm, status: 'created' });
+                // Push a fiber reference onto the stack
                 this.stack.push({ __fiber__: fiberId, vm: fiberVm });
                 break;
-            }
             default:
                 throw new Error(`Unknown opcode: ${opcode}`);
         }
     }
 }
 
-module.exports = { VM, builtins, __THROW__ };
+module.exports = { VM };

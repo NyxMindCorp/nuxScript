@@ -79,6 +79,13 @@ const NODE_TYPES = {
     // New additions
     NAMED_ARG: 'NamedArg',
     STRUCT_INSTANTIATION: 'StructInstantiation',
+
+    // AST Metadata / Reflection (new)
+    AST_META: 'ASTMeta',
+    QUOTE: 'QuoteExpr',
+    UNQUOTE: 'UnquoteExpr',
+    REFLECT: 'ReflectExpr',
+    SPREAD: 'SpreadElement',
 };
 
 class ASTNode {
@@ -452,4 +459,41 @@ module.exports = {
     ModStatement,
     NamedArg,
     StructInstantiation,
+
+    // AST Metadata / Reflection (references to classes below)
+    ASTMeta: null,
+    QuoteExpr: null,
+    UnquoteExpr: null,
+    ReflectExpr: null,
+    SpreadElement: null,
 };
+
+class ASTMeta extends ASTNode {
+    constructor(line, column, source) {
+        super(NODE_TYPES.AST_META, { line, column, source });
+    }
+}
+
+class QuoteExpr extends ASTNode {
+    constructor(quotedNode) {
+        super(NODE_TYPES.QUOTE, { quotedNode });
+    }
+}
+
+class UnquoteExpr extends ASTNode {
+    constructor(expr) {
+        super(NODE_TYPES.UNQUOTE, { expr });
+    }
+}
+
+class ReflectExpr extends ASTNode {
+    constructor(target, reflectType) {
+        super(NODE_TYPES.REFLECT, { target, reflectType });
+    }
+}
+
+class SpreadElement extends ASTNode {
+    constructor(arg) {
+        super(NODE_TYPES.SPREAD, { arg });
+    }
+}

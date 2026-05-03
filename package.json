@@ -1,16 +1,25 @@
 {
-  "name": "nuxscript",
-  "version": "0.1.0",
-  "description": "A typed, expression-oriented language with a pleasing, minimal syntax",
+  "name": "nuxscript-lib",
+  "version": "2.0.1",
+  "description": "A programming language with code analysis, reflection, and code generation",
   "main": "src/index.js",
   "bin": {
-    "nux": "./bin/nux.js"
+    "nuxscript": "bin/nux.js"
   },
   "scripts": {
-    "test": "node --test tests/**/*.js",
-    "build": "node src/compiler/index.js",
-    "run": "node bin/nux.js"
+    "test": "node bin/nux.js tests/*.nx",
+    "start": "node bin/nux.js"
   },
-  "keywords": ["language", "compiler", "interpreter", "nuxscript"],
-  "license": "MIT"
+  "keywords": [
+    "programming-language",
+    "code-analysis",
+    "reflection",
+    "codegen",
+    "interpreter"
+  ],
+  "author": "",
+  "license": "MIT",
+  "engines": {
+    "node": ">=14.0.0"
+  }
 }
