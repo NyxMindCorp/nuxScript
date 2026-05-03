@@ -7,6 +7,12 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Mobile Header -->
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,6 +26,7 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
         <h1>🔍 Regex Engine</h1>
         <p class="subtitle">Sistema de regex nativo com sintaxe única - nenhuma outra linguagem tem</p>
@@ -84,7 +91,7 @@ let email = "user@example.com"</code></pre>
                     <tr>
                         <td><code>regex_test(str, pattern)</code></td>
                         <td>Testa regex</td>
-                        <td><code>regex_test("test", r"/te/")</code></td>
+                        <td><code>regex_test(" test", r"/te/")</code></td>
                     </tr>
                     <tr>
                         <td><code>regex_replace(str, p, repl)</code></td>
@@ -154,5 +161,7 @@ let matches = regex_find_all("a1b2c3", r"/\d/")  // [{"1", "2", "3"}]</code></pr
             </table>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

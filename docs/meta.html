@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,6 +25,7 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
         <h1>🔧 Meta-programming</h1>
         <p class="subtitle">Macros, manipulação de AST e avaliação em compile-time</p>
@@ -56,10 +62,7 @@ let transformed = ast_map(ast, fn(n) =>
         then ast_node("StringLiteral", {value: n.name})
     else n
 end
-)
-
-// Encontrar nós
-let functions = ast_find(ast, "FnDeclaration")</code></pre>
+)</code></pre>
         </section>
 
         <section>
@@ -84,34 +87,11 @@ let evaluated = ct_eval(node)</code></pre>
                     <tr><td><code>str(value)</code></td><td>String</td><td><code>str("hello")</code></td></tr>
                     <tr><td><code>bin(op, left, right)</code></td><td>Binary</td><td><code>bin("+", a, b)</code></td></tr>
                     <tr><td><code>call(name, args)</code></td><td>Function call</td><td><code>call("print", [x])</code></td></tr>
-                    <tr><td><code>fn(params, body)</code></td><td>Function</td><td><code>fn(["x"], body)</code></td></tr>
-                    <tr><td><code>struct(name, props)</code></td><td>Struct</td><td><code>struct("Point", [x, y])</code></td></tr>
-                    <tr><td><code>enum(name, variants)</code></td><td>Enum</td><td><code>enum("Status", [Ok, Err])</code></td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <section>
-            <h2>Built-ins</h2>
-            <table>
-                <thead><tr><th>Função</th><th>Descrição</th></tr></thead>
-                <tbody>
-                    <tr><td><code>macro_define(name, params, body)</code></td><td>Define macro</td></tr>
-                    <tr><td><code>macro_expand(name, args)</code></td><td>Expande macro</td></tr>
-                    <tr><td><code>macro_eval(code)</code></td><td>Compila código</td></tr>
-                    <tr><td><code>ast_parse(code)</code></td><td>Parse para AST</td></tr>
-                    <tr><td><code>ast_build(node)</code></td><td>Constrói nó</td></tr>
-                    <tr><td><code>ast_node(type, props)</code></td><td>Cria nó</td></tr>
-                    <tr><td><code>ast_walk(ast, visitor)</code></td><td>Walker</td></tr>
-                    <tr><td><code>ast_map(ast, fn)</code></td><td>Map transform</td></tr>
-                    <tr><td><code>ast_find(ast, type)</code></td><td>Encontra nós</td></tr>
-                    <tr><td><code>ast_clone(ast)</code></td><td>Clona AST</td></tr>
-                    <tr><td><code>const_eval(code)</code></td><td>CT evaluation</td></tr>
-                    <tr><td><code>const_inline(value)</code></td><td>Inline constant</td></tr>
-                    <tr><td><code>ct_eval(node)</code></td><td>CT fold</td></tr>
                 </tbody>
             </table>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

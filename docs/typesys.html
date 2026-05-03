@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,95 +25,77 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
-        <h1>🏷️ Tipo System Avançado</h1>
-        <p class="subtitle">Refinements, Brands, Newtypes, Opaque types</p>
+        <h1>🏷️ Sistema de Tipos Avançado</h1>
+        <p class="subtitle">Refinements, Brands, Newtypes, Opaque Types</p>
 
         <section>
             <h2>Refinements</h2>
-            <pre><code>// Tipos com validação
-pos()              // número positivo
-neg()              // número negativo  
-nonempty()         // string não-vazia
-email()            // email válido
-uuid()             // UUID válido
-url()              // URL válida
-min(10)            // mínimo 10
-max(100)           // máximo 100
-length(1, 50)      // comprimento 1-50
-in_range(0, 100)    //no range 0-100
+            <pre><code>// Tipo com predicate
+type Positive = Int | x > 0
+type NonEmpty = String | len(x) > 0
+type ValidEmail = String | x ~/r "^\w+@\w+\.\w+$"
 
-// Usar
-let positive = pos()
-positive.check(5)    // true
-positive.check(-1)  // false</code></pre>
+// Validação automática
+let n: Positive = 5    // OK
+let m: Positive = -1   // Error!</code></pre>
         </section>
 
         <section>
-            <h2>Brands (Branded Types)</h2>
-            <pre><code>// Criar brand
-let UserId = brand("UserId")
+            <h2>Brands (Marker Types)</h2>
+            <pre><code>// Marcar tipos existentes
+brand UserId = Int
+brand SessionToken = String
 
-// Usar
-let user_id = UserId.wrap(123)
-// user_id.__brand__ === "UserId"
-UserId.unwrap(user_id)  // 123</code></pre>
+// Não podem ser usados diretamente
+let uid: UserId = 5          // OK
+let tid: SessionToken = "abc"   // OK
+
+// Un branded
+let raw: Int = unbrand(uid)</code></pre>
         </section>
 
         <section>
             <h2>Newtypes</h2>
-            <pre><code>// Criar newtype
-let Age = newtype("Age", struct_type("Number"))
+            <pre><code>// Wrapper com overhead zero
+newtype Money as Float
+newtype Meter as Float
 
-let age = Age.wrap(25)
-// age.__newtype__ === "Age"
-Age.unwrap(age)  // 25</code></pre>
+let m: Money = Money(100.50)
+let v: Float = unwrap(m)
+
+// Operations
+fn add(a: Money, b: Money): Money 
+    = Money(unwrap(a) + unwrap(b))</code></pre>
         </section>
 
         <section>
             <h2>Opaque Types</h2>
-            <pre><code>// Tipo opaco (privado)
-let Connection = opaque("Connection")
+            <pre><code>// Tipo opaco (interno oculto)
+opaque Handle
 
-// wrap retorna getter privado
-let conn = Connection.wrap(internal_data)
-Connection.unwrap(conn)  // retorna dados</code></pre>
+fn create(): Handle = ...
+fn use(h: Handle): Void = ...
+
+// Não pode ser criado fora do módulo
+let h: Handle = create()
+use(h)</code></pre>
         </section>
 
         <section>
-            <h2>Type Providers</h2>
-            <pre><code>// Criar tipos
-typeof(value)              // TypeProvider
-struct_type("User")        // Struct type
-enum_type("Status")        // Enum type
-union_type(Int, String)     // Union type
-optional_type(String)      // ?String
-result_type(Ok, Err)        // Result type
-array_of(Int)              // List[Int]
-map_of(String, Int)       // Map[String, Int]</code></pre>
-        </section>
+            <h2>Type Guards</h2>
+            <pre><code>// Guard check
+let is_positive(x: Int): Bool = is_type(x, Positive)
+let is_email(x: String): Bool = is_type(x, ValidEmail)
 
-        <section>
-            <h2>Built-ins</h2>
-            <table>
-                <thead><tr><th>Função</th><th>Descrição</th></tr></thead>
-                <tbody>
-                    <tr><td><code>typeof(val)</code></td><td>Obter tipo</td></tr>
-                    <tr><td><code>type_of(val)</code></td><td>Nome do tipo</td></tr>
-                    <tr><td><code>is_type(val, type)</code></td><td>É do tipo?</td></tr>
-                    <tr><td><code>struct_type(name)</code></td><td>Cria struct type</td></tr>
-                    <tr><td><code>enum_type(name)</code></td><td>Cria enum type</td></tr>
-                    <tr><td><code>union_type(...types)</code></td><td>Cria union</td></tr>
-                    <tr><td><code>result_type(ok, err)</code></td><td>Cria Result</td></tr>
-                    <tr><td><code>brand(name)</code></td><td>Cria brand</td></tr>
-                    <tr><td><code>newtype(name, base)</code></td><td>Cria newtype</td></tr>
-                    <tr><td><code>opaque(name)</code></td><td>Cria opaque</td></tr>
-                    <tr><td><code>pos(), neg(), nonzero()</code></td><td>Refinements</td></tr>
-                    <tr><td><code>email(), uuid(), url()</code></td><td>Refinements</td></tr>
-                    <tr><td><code>min(n), max(n)</code></td><td>Range</td></tr>
-                </tbody>
-            </table>
+// Smart cast
+if is_type(email, ValidEmail)
+    print(email)  // Já inferido como ValidEmail
+end</code></pre>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

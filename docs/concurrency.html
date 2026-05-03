@@ -3,10 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nuxScript -Concurrency</title>
+    <title>nuxScript - Concurrency</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -15,11 +20,12 @@
             <li><a href="query.html">📊 Query System</a></li>
             <li><a href="concurrency.html">⚡ Concurrency</a></li>
             <li><a href="meta.html">🔧 Meta-programming</a></li>
-            <li><a href="datastructs.html">�� Data Structures</a></li>
+            <li><a href="datastructs.html">📦 Data Structures</a></li>
             <li><a href="typesys.html">🏷️ Type System</a></li>
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
         <h1>⚡ Concurrency Avançada</h1>
         <p class="subtitle">Actors, Channels e CSP-style - como Elixir/Erlang</p>
@@ -105,18 +111,12 @@ killall()</code></pre>
                     <tr><td><code>stop(actor)</code></td><td>Para actor</td><td><code>stop(a)</code></td></tr>
                     <tr><td><code>actors()</code></td><td>Lista actors</td><td><code>actors()</code></td></tr>
                     <tr><td><code>channel()</code></td><td>Cria channel</td><td><code>channel()</code></td></tr>
-                    <tr><td><code>channel_buffer(n)</code></td><td>Channel c/ buffer</td><td><code>channel_buffer(10)</code></td></tr>
-                    <tr><td><code>receive_from(ch, fn)</code></td><td>Recebe</td><td><code>receive_from(ch, fn)</code></td></tr>
-                    <tr><td><code>poll(ch)</code></td><td>Poll não-bloqueante</td><td><code>poll(ch)</code></td></tr>
-                    <tr><td><code>close(ch)</code></td><td>Fecha channel</td><td><code>close(ch)</code></td></tr>
-                    <tr><td><code>select(...cases)</code></td><td>Select</td><td><code>select(c1, c2)</code></td></tr>
-                    <tr><td><code>spawn(fn)</code></td><td>Spawn processo</td><td><code>spawn(fn)</code></td></tr>
                     <tr><td><code>sleep(ms)</code></td><td>Espera</td><td><code>sleep(1000)</code></td></tr>
-                    <tr><td><code>after(ms, fn)</code></td><td>Executa após</td><td><code>after(1000, fn)</code></td></tr>
-                    <tr><td><code>every(ms, fn)</code></td><td>Intervalo</td><td><code>every(1000, fn)</code></td></tr>
                 </tbody>
             </table>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

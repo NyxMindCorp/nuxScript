@@ -24,8 +24,43 @@ body {
     background: var(--bg);
     color: var(--text);
     line-height: 1.6;
+    font-size: 16px;
 }
 
+/* Mobile Header */
+.mobile-header {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    z-index: 1000;
+    padding: 0 1rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.mobile-header h1 {
+    font-size: 1.25rem;
+    background: linear-gradient(135deg, var(--primary), var(--accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.menu-toggle {
+    background: none;
+    border: none;
+    color: var(--text);
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+/* Sidebar - Desktop */
 .sidebar {
     position: fixed;
     left: 0;
@@ -36,6 +71,7 @@ body {
     border-right: 1px solid var(--border);
     padding: 2rem 1rem;
     overflow-y: auto;
+    z-index: 999;
 }
 
 .sidebar h1 {
@@ -60,6 +96,7 @@ body {
     text-decoration: none;
     border-radius: 0.5rem;
     transition: all 0.2s;
+    font-size: 0.95rem;
 }
 
 .sidebar a:hover {
@@ -67,6 +104,7 @@ body {
     color: var(--primary);
 }
 
+/* Main Content */
 main {
     margin-left: 250px;
     padding: 3rem;
@@ -76,7 +114,6 @@ main {
 h1 {
     font-size: 2.5rem;
     margin-bottom: 0.5rem;
-    color: var(--text);
     background: linear-gradient(135deg, var(--primary), var(--accent));
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -111,6 +148,7 @@ section {
     border: 1px solid var(--border);
 }
 
+/* Code Blocks */
 pre {
     background: var(--code-bg);
     color: var(--code-text);
@@ -118,17 +156,19 @@ pre {
     border-radius: 0.75rem;
     overflow-x: auto;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     border: 1px solid var(--border);
+    white-space: pre-wrap;
+    word-wrap: break-word;
 }
 
 code {
     background: var(--code-bg);
     color: var(--accent);
-    padding: 0.2rem 0.5rem;
+    padding: 0.2rem 0.4rem;
     border-radius: 0.25rem;
     font-family: 'Fira Code', 'Consolas', monospace;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
 pre code {
@@ -137,16 +177,20 @@ pre code {
     color: var(--code-text);
 }
 
+/* Tables */
 table {
     width: 100%;
     border-collapse: collapse;
     margin: 1rem 0;
+    display: block;
+    overflow-x: auto;
 }
 
 th, td {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem;
     text-align: left;
     border-bottom: 1px solid var(--border);
+    white-space: nowrap;
 }
 
 th {
@@ -157,11 +201,12 @@ th {
 
 td {
     color: var(--text-muted);
-    font-size: 0.9rem;
+    font-size: 0.85rem;
 }
 
+/* Lists */
 ul, ol {
-    padding-left: 1.5rem;
+    padding-left: 1.25rem;
     margin: 1rem 0;
 }
 
@@ -170,101 +215,199 @@ li {
     color: var(--text-muted);
 }
 
-.alert {
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid #f59e0b;
-    color: #fbbf24;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    margin: 1rem 0;
-}
-
-.tip {
-    background: rgba(16, 185, 129, 0.1);
-    border: 1px solid #10b981;
-    color: #34d399;
-    padding: 1rem;
-    border-radius: 0.75rem;
-    margin: 1rem 0;
-}
-
-.btn {
-    display: inline-block;
-    background: var(--primary);
-    color: white;
-    padding: 0.75rem 1.5rem;
-    border-radius: 0.5rem;
-    text-decoration: none;
-    font-weight: 500;
-    transition: background 0.2s;
-}
-
-.btn:hover {
-    background: var(--primary-dark);
-}
-
-.tag {
-    display: inline-block;
-    background: var(--primary);
-    color: white;
-    padding: 0.2rem 0.5rem;
-    border-radius: 0.25rem;
-    font-size: 0.75rem;
-    margin-right: 0.5rem;
-}
-
-.nav-links {
-    display: flex;
+/* Features Grid */
+.features {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
     gap: 1rem;
-    margin: 2rem 0;
-}
-
-.nav-links a {
-    padding: 0.75rem 1.5rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 0.5rem;
-    color: var(--text);
-    text-decoration: none;
-}
-
-.nav-links a:hover {
-    border-color: var(--primary);
-    color: var(--primary);
-}
-
-.footer {
-    margin-top: 3rem;
-    padding-top: 2rem;
-    border-top: 1px solid var(--border);
-    color: var(--text-muted);
-    text-align: center;
 }
 
 .feature {
     background: var(--surface-light);
-    padding: 1.5rem;
+    padding: 1rem;
     border-radius: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
     border: 1px solid var(--border);
 }
 
 .feature h3 {
     color: var(--primary);
     margin-bottom: 0.5rem;
+    font-size: 1rem;
 }
 
 .feature p {
     color: var(--text-muted);
-    margin-bottom: 1rem;
+    margin-bottom: 0.75rem;
+    font-size: 0.85rem;
+}
+
+.feature pre {
+    font-size: 0.75rem;
+    padding: 0.75rem;
+}
+
+/* Responsive Breakpoints */
+@media (max-width: 1024px) {
+    main {
+        padding: 2rem;
+    }
+    
+    h1 {
+        font-size: 2rem;
+    }
 }
 
 @media (max-width: 768px) {
+    /* Show mobile header */
+    .mobile-header {
+        display: flex;
+    }
+    
+    /* Hide sidebar, show as overlay */
     .sidebar {
         display: none;
+        position: fixed;
+        top: 60px;
+        left: 0;
+        width: 100%;
+        height: calc(100vh - 60px);
+        border-right: none;
+        border-top: 1px solid var(--border);
+        padding: 1rem;
     }
+    
+    .sidebar.active {
+        display: block;
+    }
+    
+    .sidebar ul {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.5rem;
+    }
+    
+    .sidebar a {
+        padding: 0.75rem;
+        text-align: center;
+        font-size: 0.85rem;
+    }
+    
+    /* Adjust main content */
     main {
         margin-left: 0;
-        padding: 1.5rem;
+        margin-top: 60px;
+        padding: 1rem;
     }
+    
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
+    }
+    
+    .subtitle {
+        font-size: 1rem;
+    }
+    
+    section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+        border-radius: 0.75rem;
+    }
+    
+    pre {
+        font-size: 0.75rem;
+        padding: 0.75rem;
+    }
+    
+    code {
+        font-size: 0.75rem;
+    }
+    
+    /* Make tables scrollable */
+    table {
+        font-size: 0.75rem;
+    }
+    
+    th, td {
+        padding: 0.5rem;
+    }
+    
+    .features {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        font-size: 14px;
+    }
+    
+    main {
+        padding: 0.75rem;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.1rem;
+    }
+    
+    .sidebar ul {
+        grid-template-columns: 1fr;
+    }
+    
+    pre {
+        font-size: 0.7rem;
+        padding: 0.5rem;
+    }
+    
+    code {
+        font-size: 0.7rem;
+    }
+}
+
+/* Touch-friendly interactions */
+@media (hover: none) {
+    .sidebar a:active {
+        background: var(--surface-light);
+        color: var(--primary);
+    }
+    
+    button:active {
+        opacity: 0.8;
+    }
+}
+
+/* Smooth scrolling */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }

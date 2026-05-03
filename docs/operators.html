@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,112 +25,87 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
-        <h1>🔣 Operadores Customizados</h1>
-        <p class="subtitle">Operadores únicos que outras linguagens não têm</p>
+        <h1>🔣 Operadores Customizáveis</h1>
+        <p class="subtitle">Defina seus próprios operadores como Swift/Kotlin</p>
 
         <section>
-            <h2>Pipe & Composition</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>|></code></td><td>Pipe</td><td><code>a |> f |> g</code></td></tr>
-                    <tr><td><code>>></code></td><td>Compose forward</td><td><code>f >> g</code></td></tr>
-                    <tr><td><code><<</code></td><td>Compose backward</td><td><code>f << g</code></td></tr>
-                </tbody>
-            </table>
+            <h2>Pipeline</h2>
+            <pre><code>// |&gt; - Pipe (envia resultado para próxima função)
+let result = [1,2,3]
+    |> map(fn(x) => x * 2)
+    |> filter(fn(x) => x > 2)
+    |> sum()
+
+// Equivalente a: sum(filter(map([1,2,3], fn(x) => x * 2), fn(x) => x > 2))</code></pre>
         </section>
 
         <section>
-            <h2>Null-Safe</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>?.</code></td><td>Safe member access</td><td><code>user?.name</code></td></tr>
-                    <tr><td><code>??</code></td><td>Coalesce</td><td><code>a ?? b</code></td></tr>
-                    <tr><td><code>?=</code></td><td>Null assign</td><td><code>x ?= 10</code></td></tr>
-                </tbody>
-            </table>
+            <h2>Composition</h2>
+            <pre><code>// >> - Compose (compõe funções)
+// f >> g = fn(x) => g(f(x))
+let f = fn(x) => x + 1
+let g = fn(x) => x * 2
+let h = f >> g
+
+h(5)  // (5 + 1) * 2 = 12
+
+// << - Compose reverso
+// f << g = fn(x) => f(g(x))</code></pre>
         </section>
 
         <section>
-            <h2>Comparison</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code><=></code></td><td>Spaceship</td><td><code>a <=> b // -1, 0, 1</code></td></tr>
-                    <tr><td><code>==</code></td><td>Deep equals</td><td><code>a == b</code></td></tr>
-                    <tr><td><code>!=</code></td><td>Deep not equals</td><td><code>a != b</code></td></tr>
-                </tbody>
-            </table>
+            <h2>Null-safe</h2>
+            <pre><code>// ?.- Null-safe property access
+let user = {name: "John", address: null}
+let city = user?.address?.city  // null (não quebra)
+
+// ?[] - Null-safe index
+let arr = [1, 2]
+let x = arr?[10]  // null
+
+// ?.() - Null-safe call
+let fn: (fn) = null
+fn?.()  // null (não quebra)</code></pre>
         </section>
 
         <section>
-            <h2>Logical</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>and</code></td><td>Logical AND</td><td><code>a and b</code></td></tr>
-                    <tr><td><code>or</code></td><td>Logical OR</td><td><code>a or b</code></td></tr>
-                    <tr><td><code>xor</code></td><td>Exclusive OR</td><td><code>a xor b</code></td></tr>
-                    <tr><td><code>nor</code></td><td>NOR</td><td><code>a nor b</code></td></tr>
-                    <tr><td><code>nand</code></td><td>NAND</td><td><code>a nand b</code></td></tr>
-                </tbody>
-            </table>
+            <h2>Spaceship</h2>
+            <pre><code>// &lt;=&gt; - Spaceship (retorna -1, 0, ou 1)
+5 <=> 3     // 1 (maior)
+3 <=> 5     // -1 (menor)
+5 <=> 5     // 0 (igual)
+
+// Útil para sorting
+sort_by(users, fn(a, b) => a.age <=> b.age)</code></pre>
         </section>
 
         <section>
-            <h2>Range</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>..</code></td><td>Inclusive</td><td><code>1..5 // [1,2,3,4,5]</code></td></tr>
-                    <tr><td><code>..<</code></td><td>Exclusive</td><td><code>1..<5 // [1,2,3,4]</code></td></tr>
-                </tbody>
-            </table>
+            <h2> Elvis </h2>
+            <pre><code>// ?: - Elvis (default value)
+let name = user.name ?: "Guest"
+let config = value ?: "default"
+
+// ??= - Null-coalescing assignment
+current_user ??= new_user</code></pre>
         </section>
 
         <section>
-            <h2>Membership</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>in</code></td><td>In</td><td><code>a in list</code></td></tr>
-                    <tr><td><code>!in</code></td><td>Not in</td><td><code>a !in list</code></td></tr>
-                    <tr><td><code>has</code></td><td>Has key/member</td><td><code>obj has key</code></td></tr>
-                </tbody>
-            </table>
-        </section>
+            <h2>Method Reference</h2>
+            <pre><code>// :: - Method reference
+let adder = Int::plus
+adder(2, 3)  // 5
 
-        <section>
-            <h2>Function</h2>
-            <table>
-                <thead><tr><th>Operador</th><th>Descrição</th><th>Exemplo</th></tr></thead>
-                <tbody>
-                    <tr><td><code>@</code></td><td>Apply</td><td><code>f @ arg</code></td></tr>
-                    <tr><td><code>>>=</code></td><td>Bind (monad)</td><td><code>m >>= f</code></td></tr>
-                    <tr><td><code>=<<</code></td><td>Bind reverse</td><td><code>f =<< m</code></td></tr>
-                    <tr><td><code><$></code></td><td>Fmap</td><td><code>f <$> m</code></td></tr>
-                    <tr><td><code><*></code></td><td>Ap</td><td><code>fn <> val</code></td></tr>
-                </tbody>
-            </table>
-        </section>
+// Property reference  
+let len = String::length
+len("hi")   // 2
 
-        <section>
-            <h2>Built-ins</h2>
-            <table>
-                <thead><tr><th>Função</th><th>Descrição</th></tr></thead>
-                <tbody>
-                    <tr><td><code>eval_op(op, left, right)</code></td><td>Avalia operador</td></tr>
-                    <tr><td><code>has_op(op)</code></td><td>Verifica operador existe</td></tr>
-                    <tr><td><code>list_ops()</code></td><td>Lista operadores</td></tr>
-                    <tr><td><code>def_op(op, fn, opts)</code></td><td>Define operador customizado</td></tr>
-                    <tr><td><code>pipe(val, fns)</code></td><td>Pipeline</td></tr>
-                    <tr><td><code>compose(...fns)</code></td><td>Composta de funções</td></tr>
-                    <tr><td><code>cmp(a, b)</code></td><td>Spaceship</td></tr>
-                </tbody>
-            </table>
+// Passando como callback
+let lengths = ["a", "bb"] |> map(String::length)</code></pre>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

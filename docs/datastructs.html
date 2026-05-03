@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,6 +25,7 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
         <h1>📦 Estruturas Exclusivas</h1>
         <p class="subtitle">Tuple, Set, Dict, Tree, Heap, Graph</p>
@@ -53,9 +59,7 @@ dict_get(d, "name")           // "John"
 dict_set(d, "city", "NYC")    // {name: "John", age: 30, city: "NYC"}
 dict_keys(d)                  // ["name", "age", "city"]
 dict_values(d)               // ["John", 30, "NYC"]
-dict_merge(a, b)
-dict_pick(d, "name", "age")
-dict_omit(d, "password")</code></pre>
+dict_merge(a, b)</code></pre>
         </section>
 
         <section>
@@ -69,9 +73,7 @@ let root = tree_node(1,
 tree_map(root, fn(x) => x * 2)
 tree_find(root, fn(x) => x > 1)
 tree_depth(root)         // 2
-tree_size(root)          // 3
-tree_preorder(root)       // [1, 2, 3]
-tree_levelorder(root)   // [1, 2, 3]</code></pre>
+tree_size(root)          // 3</code></pre>
         </section>
 
         <section>
@@ -95,28 +97,10 @@ graph_add_edge(g, "B", "C")
 
 graph_bfs(g, "A")       // ["A", "B", "C"]
 graph_dfs(g, "A")       // ["A", "B", "C"]
-let result = graph_dijkstra(g, "A", "C")
-result.path             // ["A", "B", "C"]
-result.distance         // 2
-
-// Mermaid export
-g.toMermaid()           // graph TD\nA --> B\nB --> C</code></pre>
-        </section>
-
-        <section>
-            <h2>Built-ins</h2>
-            <table>
-                <thead><tr><th>Estrutura</th><th>Funções</th></tr></thead>
-                <tbody>
-                    <tr><td><code>Tuple</code></td><td><code>tuple, tuple_get, tuple_len, tuple_first, tuple_last, tuple_map, tuple_zip</code></td></tr>
-                    <tr><td><code>Set</code></td><td><code>set, set_add, set_has, set_union, set_intersect, set_diff</code></td></tr>
-                    <tr><td><code>Dict</code></td><td><code>dict, dict_get, dict_set, dict_keys, dict_values, dict_merge</code></td></tr>
-                    <tr><td><code>Tree</code></td><td><code>tree_leaf, tree_node, tree_map, tree_find, tree_depth, tree_preorder</code></td></tr>
-                    <tr><td><code>Heap</code></td><td><code>heap_min, heap_max, heap_push, heap_pop, heap_peek</code></td></tr>
-                    <tr><td><code>Graph</code></td><td><code>graph, graph_undirected, graph_add_node, graph_add_edge, graph_bfs, graph_dfs, graph_dijkstra</code></td></tr>
-                </tbody>
-            </table>
+let result = graph_dijkstra(g, "A", "C")</code></pre>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>

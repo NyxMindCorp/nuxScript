@@ -7,6 +7,11 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div class="mobile-header">
+        <h1>nuxScript</h1>
+        <button class="menu-toggle" aria-label="Menu">☰</button>
+    </div>
+
     <nav class="sidebar">
         <h1>nuxScript</h1>
         <ul>
@@ -20,6 +25,7 @@
             <li><a href="operators.html">🔣 Operators</a></li>
         </ul>
     </nav>
+
     <main>
         <h1>📊 Query System</h1>
         <p class="subtitle">Sistema de queries SQL-like para dados - como LINQ em C# ou Spark</p>
@@ -54,13 +60,6 @@ let young = select u in users where u.age &lt; 30</code></pre>
                     <tr><td><code>max(data, field)</code></td><td>Máximo</td><td><code>max(users, "age")</code></td></tr>
                     <tr><td><code>pluck(data, field)</code></td><td>Extrai campo</td><td><code>pluck(users, "name")</code></td></tr>
                     <tr><td><code>distinct(data)</code></td><td>Únicos</td><td><code>distinct(users)</code></td></tr>
-                    <tr><td><code>union(a, b)</code></td><td>União</td><td><code>union(a, b)</code></td></tr>
-                    <tr><td><code>intersect(a, b)</code></td><td>Interseção</td><td><code>intersect(a, b)</code></td></tr>
-                    <tr><td><code>diff(a, b)</code></td><td>Diferença</td><td><code>diff(a, b)</code></td></tr>
-                    <tr><td><code>limit(data, n)</code></td><td>Limita</td><td><code>limit(users, 10)</code></td></tr>
-                    <tr><td><code>take(data, n)</code></td><td>Toma n</td><td><code>take(users, 5)</code></td></tr>
-                    <tr><td><code>skip(data, n)</code></td><td>Pula n</td><td><code>skip(users, 5)</code></td></tr>
-                    <tr><td><code>flatten(data)</code></td><td>Achat</td><td><code>flatten(nested)</code></td></tr>
                 </tbody>
             </table>
         </section>
@@ -85,18 +84,10 @@ let stats = users
     |> sum("age")        // 55
     |> avg("age")        // 27.5
     |> min("age")        // 25
-    |> max("age")        // 30
-
-// Join
-let orders = [{user_id: 1, total: 100}, {user_id: 2, total: 200}]
-let joined = join(users, orders, fn(u, o) => u.id == o.user_id, "left")
-
-// Set operations
-let active = [{id: 1}, {id: 2}]
-let all = union(active, inactive)
-let common = intersect(active, inactive)
-let only_a = diff(active, inactive)</code></pre>
+    |> max("age")        // 30</code></pre>
         </section>
     </main>
+
+    <script src="script.js"></script>
 </body>
 </html>
