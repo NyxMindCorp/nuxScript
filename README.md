@@ -1,6 +1,6 @@
 # nuxScript
 
-A programming language with built-in code analysis, reflection, and code generation capabilities.
+A programming language with exclusive features: regex engine, query system, actors, macros, advanced data structures, type system, and custom operators.
 
 ## Installation
 
@@ -330,6 +330,12 @@ console.log(ExternalParser.parseJS(code));
 ## Documentation
 
 See [SPEC.md](./SPEC.md) for full language specification.
+
+## Links
+
+- **npm**: https://npmjs.com/package/nuxscript-lib
+- **GitHub**: https://github.com/NyxMindCorp/nuxScript
+- **Documentation**: https://nyxmindcorp.github.io/nuxScript/docs/
 
 ## License
 
