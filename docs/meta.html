@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nuxScript - Meta-programming</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>nuxScript</h1>
+        <ul>
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="regex.html">🔍 Regex Engine</a></li>
+            <li><a href="query.html">📊 Query System</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="meta.html">🔧 Meta-programming</a></li>
+            <li><a href="datastructs.html">📦 Data Structures</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="operators.html">🔣 Operators</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>🔧 Meta-programming</h1>
+        <p class="subtitle">Macros, manipulação de AST e avaliação em compile-time</p>
+
+        <section>
+            <h2>Macros</h2>
+            <pre><code>// Definir macro
+macro_define("assert", ["condition", "message"], 
+    "if not $condition then error($message) end")
+
+// Usar macro
+assert(x > 0, "x must be positive")
+
+// Expandir
+let expanded = macro_expand("assert", [true, "test"])</code></pre>
+        </section>
+
+        <section>
+            <h2>AST Manipulation</h2>
+            <pre><code>// Parse código para AST
+let ast = ast_parse("let x = 1")
+
+// Criar nó AST
+let node = ast_node("Identifier", {name: "foo"})
+let num = num(42)
+let bin = bin("+", ident("a"), num(1))
+
+// Walker AST
+ast_walk(ast, fn(node) => print(node.type))
+
+// Map transform
+let transformed = ast_map(ast, fn(n) => 
+    if n.type == "Identifier"
+        then ast_node("StringLiteral", {value: n.name})
+    else n
+end
+)
+
+// Encontrar nós
+let functions = ast_find(ast, "FnDeclaration")</code></pre>
+        </section>
+
+        <section>
+            <h2>Compile-time Evaluation</h2>
+            <pre><code>// Avaliar em compile-time
+let const_result = const_eval("1 + 2 * 3")  // 7
+
+// Inline constant
+let inlined = const_inline(42)
+
+// Evaluate se constante
+let evaluated = ct_eval(node)</code></pre>
+        </section>
+
+        <section>
+            <h2>Node Constructors</h2>
+            <table>
+                <thead><tr><th>Função</th><th>Descrição</th><th>Exemplo</th></tr></thead>
+                <tbody>
+                    <tr><td><code>ident(name)</code></td><td>Identifier</td><td><code>ident("x")</code></td></tr>
+                    <tr><td><code>num(value)</code></td><td>Number</td><td><code>num(42)</code></td></tr>
+                    <tr><td><code>str(value)</code></td><td>String</td><td><code>str("hello")</code></td></tr>
+                    <tr><td><code>bin(op, left, right)</code></td><td>Binary</td><td><code>bin("+", a, b)</code></td></tr>
+                    <tr><td><code>call(name, args)</code></td><td>Function call</td><td><code>call("print", [x])</code></td></tr>
+                    <tr><td><code>fn(params, body)</code></td><td>Function</td><td><code>fn(["x"], body)</code></td></tr>
+                    <tr><td><code>struct(name, props)</code></td><td>Struct</td><td><code>struct("Point", [x, y])</code></td></tr>
+                    <tr><td><code>enum(name, variants)</code></td><td>Enum</td><td><code>enum("Status", [Ok, Err])</code></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Built-ins</h2>
+            <table>
+                <thead><tr><th>Função</th><th>Descrição</th></tr></thead>
+                <tbody>
+                    <tr><td><code>macro_define(name, params, body)</code></td><td>Define macro</td></tr>
+                    <tr><td><code>macro_expand(name, args)</code></td><td>Expande macro</td></tr>
+                    <tr><td><code>macro_eval(code)</code></td><td>Compila código</td></tr>
+                    <tr><td><code>ast_parse(code)</code></td><td>Parse para AST</td></tr>
+                    <tr><td><code>ast_build(node)</code></td><td>Constrói nó</td></tr>
+                    <tr><td><code>ast_node(type, props)</code></td><td>Cria nó</td></tr>
+                    <tr><td><code>ast_walk(ast, visitor)</code></td><td>Walker</td></tr>
+                    <tr><td><code>ast_map(ast, fn)</code></td><td>Map transform</td></tr>
+                    <tr><td><code>ast_find(ast, type)</code></td><td>Encontra nós</td></tr>
+                    <tr><td><code>ast_clone(ast)</code></td><td>Clona AST</td></tr>
+                    <tr><td><code>const_eval(code)</code></td><td>CT evaluation</td></tr>
+                    <tr><td><code>const_inline(value)</code></td><td>Inline constant</td></tr>
+                    <tr><td><code>ct_eval(node)</code></td><td>CT fold</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

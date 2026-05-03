@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nuxScript - Query System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>nuxScript</h1>
+        <ul>
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="regex.html">🔍 Regex Engine</a></li>
+            <li><a href="query.html">📊 Query System</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="meta.html">🔧 Meta-programming</a></li>
+            <li><a href="datastructs.html">📦 Data Structures</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="operators.html">🔣 Operators</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>📊 Query System</h1>
+        <p class="subtitle">Sistema de queries SQL-like para dados - como LINQ em C# ou Spark</p>
+
+        <section>
+            <h2>Sintaxe</h2>
+            <pre><code>let users = [
+    {name: "Alice", age: 25, city: "NYC"},
+    {name: "Bob", age: 30, city: "LA"}
+]
+
+// Sintaxe de query
+let young = select u in users where u.age &lt; 30</code></pre>
+        </section>
+
+        <section>
+            <h2>Funções de Query</h2>
+            <table>
+                <thead>
+                    <tr><th>Função</th><th>Descrição</th><th>Exemplo</th></tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>select(data, ...fields)</code></td><td>Seleciona campos</td><td><code>select(users, "name")</code></td></tr>
+                    <tr><td><code>where(data, cond)</code></td><td>Filtra dados</td><td><code>where(users, .age &gt; 20)</code></td></tr>
+                    <tr><td><code>order_by(data, field, dir)</code></td><td>Ordena</td><td><code>order_by(users, "name", "asc")</code></td></tr>
+                    <tr><td><code>group_by(data, field)</code></td><td>Agrupa</td><td><code>group_by(users, "city")</code></td></tr>
+                    <tr><td><code>join(a, b, on, type)</code></td><td>Joins</td><td><code>join(users, orders, .id == .user_id)</code></td></tr>
+                    <tr><td><code>count(data)</code></td><td>Conta</td><td><code>count(users)</code></td></tr>
+                    <tr><td><code>sum(data, field)</code></td><td>Soma</td><td><code>sum(users, "age")</code></td></tr>
+                    <tr><td><code>avg(data, field)</code></td><td>Média</td><td><code>avg(users, "age")</code></td></tr>
+                    <tr><td><code>min(data, field)</code></td><td>Mínimo</td><td><code>min(users, "age")</code></td></tr>
+                    <tr><td><code>max(data, field)</code></td><td>Máximo</td><td><code>max(users, "age")</code></td></tr>
+                    <tr><td><code>pluck(data, field)</code></td><td>Extrai campo</td><td><code>pluck(users, "name")</code></td></tr>
+                    <tr><td><code>distinct(data)</code></td><td>Únicos</td><td><code>distinct(users)</code></td></tr>
+                    <tr><td><code>union(a, b)</code></td><td>União</td><td><code>union(a, b)</code></td></tr>
+                    <tr><td><code>intersect(a, b)</code></td><td>Interseção</td><td><code>intersect(a, b)</code></td></tr>
+                    <tr><td><code>diff(a, b)</code></td><td>Diferença</td><td><code>diff(a, b)</code></td></tr>
+                    <tr><td><code>limit(data, n)</code></td><td>Limita</td><td><code>limit(users, 10)</code></td></tr>
+                    <tr><td><code>take(data, n)</code></td><td>Toma n</td><td><code>take(users, 5)</code></td></tr>
+                    <tr><td><code>skip(data, n)</code></td><td>Pula n</td><td><code>skip(users, 5)</code></td></tr>
+                    <tr><td><code>flatten(data)</code></td><td>Achat</td><td><code>flatten(nested)</code></td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Exemplos</h2>
+            <pre><code>// Query completo
+let result = users
+    |> where(.age >= 18)
+    |> order_by("name")
+    |> select("name", "city")
+
+// Group by
+let by_city = group_by(users, "city")
+for city in by_city
+    print("{city.key}: {city.count} users")
+end
+
+// Aggregates
+let stats = users
+    |> count()           // 2
+    |> sum("age")        // 55
+    |> avg("age")        // 27.5
+    |> min("age")        // 25
+    |> max("age")        // 30
+
+// Join
+let orders = [{user_id: 1, total: 100}, {user_id: 2, total: 200}]
+let joined = join(users, orders, fn(u, o) => u.id == o.user_id, "left")
+
+// Set operations
+let active = [{id: 1}, {id: 2}]
+let all = union(active, inactive)
+let common = intersect(active, inactive)
+let only_a = diff(active, inactive)</code></pre>
+        </section>
+    </main>
+</body>
+</html>

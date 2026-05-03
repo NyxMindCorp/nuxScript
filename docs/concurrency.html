@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nuxScript -Concurrency</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>nuxScript</h1>
+        <ul>
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="regex.html">🔍 Regex Engine</a></li>
+            <li><a href="query.html">📊 Query System</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="meta.html">🔧 Meta-programming</a></li>
+            <li><a href="datastructs.html">�� Data Structures</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="operators.html">🔣 Operators</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>⚡ Concurrency Avançada</h1>
+        <p class="subtitle">Actors, Channels e CSP-style - como Elixir/Erlang</p>
+
+        <section>
+            <h2>Actors</h2>
+            <pre><code>// Criar actor
+let counter = actor(fn(state, msg, update) =>
+    match msg
+        "inc" -> update(state + 1)
+        "dec" -> update(state - 1)
+        "get" -> state
+    end
+end)
+
+// Enviar mensagem
+send_to(counter, "inc")
+tell(counter, "inc")
+
+// Async ask
+let result = ask(counter, "get")</code></pre>
+        </section>
+
+        <section>
+            <h2>Channels</h2>
+            <pre><code>// Criar channel
+let ch = channel()
+
+// Buffer opcional
+let buffered = channel_buffer(10)
+
+// Enviar
+send_to(ch, "hello")
+
+// Receiver
+receive_from(ch, fn(msg) => print(msg))
+
+// Poll (não-blocking)
+let msg = poll(ch)
+
+// Close
+close(ch)</code></pre>
+        </section>
+
+        <section>
+            <h2>Select (alternatives)</h2>
+            <pre><code>// Wait em múltiplos channels
+select(
+    channel1 => receive_from(channel1, handle1),
+    channel2 => receive_from(channel2, handle2)
+)
+
+// Shorthand
+alts(channel1, channel2, channel3)</code></pre>
+        </section>
+
+        <section>
+            <h2>Processos</h2>
+            <pre><code>// Spawn processo
+let proc = spawn(fn() =>
+    loop
+        print("running")
+        sleep(1000)
+    end
+end)
+
+// Kill
+kill(proc)
+
+// Kill all
+killall()</code></pre>
+        </section>
+
+        <section>
+            <h2>Built-ins</h2>
+            <table>
+                <thead><tr><th>Função</th><th>Descrição</th><th>Exemplo</th></tr></thead>
+                <tbody>
+                    <tr><td><code>actor(behavior)</code></td><td>Cria actor</td><td><code>actor(fn)</code></td></tr>
+                    <tr><td><code>send_to(actor, msg)</code></td><td>Envia mensagem</td><td><code>send_to(a, "msg")</code></td></tr>
+                    <tr><td><code>tell(actor, msg)</code></td><td>Alias para send</td><td><code>tell(a, "msg")</code></td></tr>
+                    <tr><td><code>ask(actor, msg)</code></td><td>Pergunta async</td><td><code>ask(a, "get")</code></td></tr>
+                    <tr><td><code>stop(actor)</code></td><td>Para actor</td><td><code>stop(a)</code></td></tr>
+                    <tr><td><code>actors()</code></td><td>Lista actors</td><td><code>actors()</code></td></tr>
+                    <tr><td><code>channel()</code></td><td>Cria channel</td><td><code>channel()</code></td></tr>
+                    <tr><td><code>channel_buffer(n)</code></td><td>Channel c/ buffer</td><td><code>channel_buffer(10)</code></td></tr>
+                    <tr><td><code>receive_from(ch, fn)</code></td><td>Recebe</td><td><code>receive_from(ch, fn)</code></td></tr>
+                    <tr><td><code>poll(ch)</code></td><td>Poll não-bloqueante</td><td><code>poll(ch)</code></td></tr>
+                    <tr><td><code>close(ch)</code></td><td>Fecha channel</td><td><code>close(ch)</code></td></tr>
+                    <tr><td><code>select(...cases)</code></td><td>Select</td><td><code>select(c1, c2)</code></td></tr>
+                    <tr><td><code>spawn(fn)</code></td><td>Spawn processo</td><td><code>spawn(fn)</code></td></tr>
+                    <tr><td><code>sleep(ms)</code></td><td>Espera</td><td><code>sleep(1000)</code></td></tr>
+                    <tr><td><code>after(ms, fn)</code></td><td>Executa após</td><td><code>after(1000, fn)</code></td></tr>
+                    <tr><td><code>every(ms, fn)</code></td><td>Intervalo</td><td><code>every(1000, fn)</code></td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nuxScript - Regex Engine</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>nuxScript</h1>
+        <ul>
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="regex.html">🔍 Regex Engine</a></li>
+            <li><a href="query.html">📊 Query System</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="meta.html">🔧 Meta-programming</a></li>
+            <li><a href="datastructs.html">📦 Data Structures</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="operators.html">🔣 Operators</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>🔍 Regex Engine</h1>
+        <p class="subtitle">Sistema de regex nativo com sintaxe única - nenhuma outra linguagem tem</p>
+
+        <section>
+            <h2>Sintaxe</h2>
+            <pre><code>let pattern = r"/(\w+)@(\w+)\.(\w+)/"
+let email = "user@example.com"</code></pre>
+        </section>
+
+        <section>
+            <h2>Operadores de Regex</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Operador</th>
+                        <th>Descrição</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>~/r</code></td>
+                        <td>Match (testa se regex bate)</td>
+                        <td><code>email ~/r "^\w+@\w+\.\w+$"</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>~</code></td>
+                        <td>Contains (contém padrão)</td>
+                        <td><code>email ~ "@"</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>=~</code></td>
+                        <td>Match com extração</td>
+                        <td><code>match email =~ r"/(\w+)@/"</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Funções Built-in</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Função</th>
+                        <th>Descrição</th>
+                        <th>Exemplo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><code>r(pattern)</code></td>
+                        <td>Cria regex</td>
+                        <td><code>let re = r"/\d+/g"</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_match(str, pattern)</code></td>
+                        <td>Match completo</td>
+                        <td><code>regex_match("test@x.com", r"/@/")</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_test(str, pattern)</code></td>
+                        <td>Testa regex</td>
+                        <td><code>regex_test("test", r"/te/")</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_replace(str, p, repl)</code></td>
+                        <td>Substitui</td>
+                        <td><code>regex_replace("a1", r"/\d/", "2")</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_split(str, pattern)</code></td>
+                        <td>Separa por regex</td>
+                        <td><code>regex_split("a,b", r/,/))</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_find_all(str, pattern)</code></td>
+                        <td>Encontra todas ocorrências</td>
+                        <td><code>regex_find_all("aa", r"/a/g")</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_extract(str, pattern)</code></td>
+                        <td>Extrai grupos</td>
+                        <td><code>regex_extract("a@b", r"/(.)@(.)/")</code></td>
+                    </tr>
+                    <tr>
+                        <td><code>regex_escape(str)</code></td>
+                        <td>Escapa caracteres</td>
+                        <td><code>regex_escape("a.b")</code></td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+
+        <section>
+            <h2>Exemplos</h2>
+            <pre><code>// Match com destructuring
+let email = "user@example.com"
+match email
+    r"/(\w+)@(\w+)\.(\w+)/" as (user, domain, tld) 
+        -> print("User: {user}")  // "User: user"
+    _ -> print("No match")
+
+// Validação de email
+let is_valid = email ~/r "^\w+@\w+\.\w+$"
+
+// Replace com callback
+let result = regex_replace("hello", r"/(.)/", fn(m) -> m++"x")
+
+// Encontrar todos
+let matches = regex_find_all("a1b2c3", r"/\d/")  // [{"1", "2", "3"}]</code></pre>
+        </section>
+
+        <section>
+            <h2>Flags</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Flag</th>
+                        <th>Descrição</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td><code>g</code></td><td>Global (todas ocorrências)</td></tr>
+                    <tr><td><code>i</code></td><td>Case insensitive</td></tr>
+                    <tr><td><code>m</code></td><td>Multiline</td></tr>
+                    <tr><td><code>s</code></td><td>Dotall (.匹配\n)</td></tr>
+                    <tr><td><code>u</code></td><td>Unicode</td></tr>
+                    <tr><td><code>y</code></td><td>Sticky</td></tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>

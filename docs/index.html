@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nuxScript - Programming Language</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="sidebar">
+        <h1>nuxScript</h1>
+        <ul>
+            <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="regex.html">🔍 Regex Engine</a></li>
+            <li><a href="query.html">📊 Query System</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="meta.html">🔧 Meta-programming</a></li>
+            <li><a href="datastructs.html">📦 Data Structures</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="operators.html">🔣 Operators</a></li>
+        </ul>
+    </nav>
+    <main>
+        <h1>nuxScript</h1>
+        <p class="subtitle">Linguagem de programação com funcionalidades exclusivas</p>
+
+        <section>
+            <h2>Quick Start</h2>
+            <pre><code># Install
+npm i -g nuxscript-lib
+
+# Run
+nux run hello.nux
+
+# hello.nux
+print("Hello, nuxScript!")</code></pre>
+        </section>
+
+        <section>
+            <h2>Features Exclusivas</h2>
+            <div class="features">
+                <div class="feature">
+                    <h3>🔍 Regex Engine</h3>
+                    <p>Sintaxe única com match operator, destructuring groups</p>
+                    <pre><code>let pattern = r"/(\w+)@(\w+)\.(\w+)/"
+email ~/r "^\w+@\w+\.\w+$"</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>📊 Query System</h3>
+                    <p>LINQ-like queries para dados: select, where, groupBy, join</p>
+                    <pre><code>users |> where(.age > 18)
+     |> order_by("name")
+     |> select("name")</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>⚡ Concurrency</h3>
+                    <p>Actors, Channels, CSP-style (como Elixir/Erlang)</p>
+                    <pre><code>let counter = actor(fn(state, msg) => ...)
+send_to(counter, "inc")</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>🔧 Meta-programming</h3>
+                    <p>Macros, AST manipulation, compile-time evaluation</p>
+                    <pre><code>macro_define("assert", ...)
+ast_parse("let x = 1")</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>📦 Data Structures</h3>
+                    <p>Tuple, Set, Dict, Tree, Heap, Graph</p>
+                    <pre><code>let t = tuple(1, 2, 3)
+let g = graph()</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>🏷️ Type System</h3>
+                    <p>Refinements, Brands, Newtypes, Opaque types</p>
+                    <pre><code>pos()              // positive number
+email()            // valid email</code></pre>
+                </div>
+                
+                <div class="feature">
+                    <h3>🔣 Custom Operators</h3>
+                    <p>Pipeline, null-safe, spaceship, composition</p>
+                    <pre><code>a |> f           // pipe
+x ?? default   // coalesce
+a <=> b        // spaceship</code></pre>
+                </div>
+            </div>
+        </section>
+
+        <section>
+            <h2>Installation</h2>
+            <pre><code># Global (recommended)
+npm i -g nuxscript-lib
+
+# Local
+npm install nuxscript-lib</code></pre>
+        </section>
+
+        <section>
+            <h2>Basic Syntax</h2>
+            <pre><code># Variables
+let x = 10           # immutable
+var y = 20          # mutable
+const MAX = 100
+
+# Functions
+fn add(a :: Int, b :: Int) -> Int
+    a + b
+end
+
+# Structs
+struct Point
+    x :: Int
+    y :: Int
+end
+
+# Enums
+enum Status
+    Pending
+    Done(result :: String)
+    Failed(error :: String)
+end
+
+# Pattern matching
+match value
+    Ok(v)   -> print("Success: {v}")
+    Err(e)  -> print("Error: {e}")
+end
+
+# Pipe
+[1, 2, 3] |> filter(fn(x) => x > 1)
+        |> map(fn(x) => x * 2)</code></pre>
+        </section>
+
+        <section>
+            <h2>Links</h2>
+            <ul>
+                <li><a href="https://npmjs.com/package/nuxscript-lib">npm</a></li>
+                <li><a href="https://github.com/Sldark23/nuxScript">GitHub</a></li>
+            </ul>
+        </section>
+    </main>
+</body>
+</html>
