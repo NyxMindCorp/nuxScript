@@ -75,6 +75,8 @@ const NODE_TYPES = {
     BREAK: 'BreakStatement',
     CONTINUE: 'ContinueStatement',
     YIELD: 'YieldStatement',
+    EXPORT: 'ExportStatement',
+    IMPORT: 'ImportStatement',
 
     // New additions
     NAMED_ARG: 'NamedArg',
@@ -396,6 +398,18 @@ class StructInstantiation extends ASTNode {
     }
 }
 
+class ExportStatement extends ASTNode {
+    constructor(name, value) {
+        super(NODE_TYPES.EXPORT, { name, value });
+    }
+}
+
+class ImportStatement extends ASTNode {
+    constructor(source, names) {
+        super(NODE_TYPES.IMPORT, { source, names });
+    }
+}
+
 
 class FiberExpr extends ASTNode {
     constructor(body) {
@@ -459,6 +473,8 @@ module.exports = {
     ModStatement,
     NamedArg,
     StructInstantiation,
+    ExportStatement,
+    ImportStatement,
 
     // AST Metadata / Reflection (references to classes below)
     ASTMeta: null,

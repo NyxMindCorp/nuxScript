@@ -12,9 +12,11 @@ const { TypeChecker, checkTypes } = require('../src/typechecker');
 const fs = require('fs');
 const path = require('path');
 
+const { loadModule } = require('../src/module');
+
 function runFile(filename, options = {}) {
     const code = fs.readFileSync(filename, 'utf-8');
-    return runCode(code, options);
+    return runCode(code, { ...options, filename });
 }
 
 function runCode(code, options = {}) {
@@ -54,13 +56,21 @@ function runCode(code, options = {}) {
         const bytecode = compiler.compile();
 
         const vm = new VM(bytecode);
-        // Add builtins to the VM's variables
         const { builtins } = require('../src/vm');
         for (const [key, value] of Object.entries(builtins)) {
             vm.variables.set(key, value);
         }
-        const result = vm.run();
 
+        const fileDir = options.filename ? path.dirname(path.resolve(options.filename)) : process.cwd();
+        vm.variables.set('use', (modName) => {
+            const exports = loadModule(modName, fileDir);
+            for (const [key, value] of Object.entries(exports)) {
+                vm.variables.set(key, value);
+            }
+            return exports;
+        });
+
+        const result = vm.run();
         return result;
 }
 
@@ -93,17 +103,21 @@ function printAST(ast, indent = 0) {
 const args = process.argv.slice(2);
 
 if (args.length === 0) {
-    console.log('nuxScript v0.2.0');
-    console.log('Usage: nux <command> [options] <file.nux>');
+    const pkg = require('../package.json');
+    console.log(`nuxScript v${pkg.version}`);
+    console.log('Usage: nux <command> [options] [args]');
     console.log('');
     console.log('Commands:');
     console.log('  run <file>        Run a nuxScript file');
     console.log('  typecheck <file>  Check types without running');
     console.log('  check <file>      Type check + run');
+    console.log('  watch <file>      Run file and auto-reload on changes');
+    console.log('  repl              Start interactive REPL');
     console.log('  ast <file>        Print the AST');
     console.log('  tokens <file>     Print tokens');
-    console.log('  pkg <action>      Package manager (install, list, remove)');
+    console.log('  pkg <action>      Package manager (install, list, remove, update, search, create)');
     console.log('  init <name>       Initialize a new nuxScript project');
+    console.log('  lsp               Start LSP server (for IDE integration)');
     console.log('');
     console.log('Options:');
     console.log('  --strict          Treat warnings as errors');
@@ -147,6 +161,25 @@ if (command === 'run' || command === 'check') {
         console.error('Runtime error:', err.message);
         process.exit(1);
     }
+} else if (command === 'watch') {
+    const filename = getFileArg();
+    if (!filename) {
+        console.error('Usage: nux watch <file.nux>');
+        process.exit(1);
+    }
+    const filepath = path.resolve(filename);
+    if (!fs.existsSync(filepath)) {
+        console.error(`File not found: ${filepath}`);
+        process.exit(1);
+    }
+    const { watchFile } = require('../src/watch');
+    watchFile(filepath, { strict });
+} else if (command === 'repl') {
+    const { startREPL } = require('../src/repl');
+    startREPL();
+} else if (command === 'lsp') {
+    const { startLSP } = require('../src/lsp');
+    startLSP();
 } else if (command === 'typecheck') {
     const filename = getFileArg();
     if (!filename) {
@@ -211,9 +244,12 @@ if (command === 'run' || command === 'check') {
     const pkgName = args[2];
     const version = args[3];
 
+    const pkgManager = require('../src/pkg');
+    const projectRoot = pkgManager.resolveProjectRoot(process.cwd());
+
     if (!subcommand) {
         console.error('Usage: nux pkg <action> [name] [version]');
-        console.log('Actions: install, list, remove');
+        console.log('Actions: install, list, remove, update, search, info, create');
         process.exit(1);
     }
 
@@ -222,59 +258,118 @@ if (command === 'run' || command === 'check') {
             console.error('Usage: nux pkg install <name> [version]');
             process.exit(1);
         }
-        // Call the pkg_install built-in function via VM
-        const { VM } = require('../src/vm');
-        // We need to run a small script that calls pkg_install
-        const code = `pkg_install("${pkgName}", "${version || "latest"}")`;
-        const vm = new VM({ instructions: [], constants: [] }); // This is a simplified approach; better to reuse runCode
-        // Instead, let's reuse the existing runCode function but we need to adapt.
-        // For simplicity, we'll create a temporary VM with the builtins.
-        const { builtins } = require('../src/vm');
-        const vm2 = new VM({ instructions: [], constants: [] }, null);
-        vm2.variables = new Map(Object.entries(builtins));
-        try {
-            // We need to compile and run the code. Let's reuse the runCode function from this file.
-            // But we are inside the same file, so we can call runCode.
-            // However, runCode expects a file or code string and does full compilation.
-            // We'll do that.
-            const result = runCode(code, {});
-            console.log(`→ ${JSON.stringify(result)}`);
-        } catch (err) {
-            console.error('Error:', err.message);
+        if (!projectRoot) {
+            console.error('No nuxpackage.json found. Run nux init first.');
             process.exit(1);
         }
+        const result = pkgManager.installPackage(projectRoot, pkgName, version);
+        console.log(result.message);
     } else if (subcommand === 'list') {
-        const code = `pkg_list()`;
-        try {
-            const result = runCode(code, {});
-            console.log('Installed packages:');
-            if (Array.isArray(result) && result.length === 0) {
-                console.log('  (none)');
-            } else {
-                for (const pkg of result) {
-                    console.log(`  ${pkg.name}@${pkg.version}`);
-                }
-            }
-        } catch (err) {
-            console.error('Error:', err.message);
+        if (!projectRoot) {
+            console.error('No nuxpackage.json found.');
             process.exit(1);
+        }
+        const packages = pkgManager.listPackages(projectRoot);
+        console.log('Installed packages:');
+        if (packages.length === 0) {
+            console.log('  (none)');
+        } else {
+            for (const pkg of packages) {
+                console.log(`  ${pkg.name}@${pkg.version}`);
+            }
         }
     } else if (subcommand === 'remove') {
         if (!pkgName) {
             console.error('Usage: nux pkg remove <name>');
             process.exit(1);
         }
-        const code = `pkg_remove("${pkgName}")`;
-        try {
-            const result = runCode(code, {});
-            console.log(`→ ${JSON.stringify(result)}`);
-        } catch (err) {
-            console.error('Error:', err.message);
+        if (!projectRoot) {
+            console.error('No nuxpackage.json found.');
             process.exit(1);
         }
+        const result = pkgManager.removePackage(projectRoot, pkgName);
+        console.log(result.message);
+    } else if (subcommand === 'update') {
+        if (!projectRoot) {
+            console.error('No nuxpackage.json found.');
+            process.exit(1);
+        }
+        const result = pkgManager.updatePackages(projectRoot);
+        console.log(result.message);
+        if (result.updated) {
+            for (const u of result.updated) {
+                console.log(`  Updated ${u.name}: ${u.from} -> ${u.to}`);
+            }
+        }
+    } else if (subcommand === 'search') {
+        if (!pkgName) {
+            console.error('Usage: nux pkg search <query>');
+            process.exit(1);
+        }
+        const results = pkgManager.searchPackages(pkgName);
+        console.log(`Search results for "${pkgName}":`);
+        if (results.length === 0) {
+            console.log('  (no results)');
+        } else {
+            for (const pkg of results) {
+                console.log(`  ${pkg.name} - ${pkg.description}`);
+            }
+        }
+    } else if (subcommand === 'info') {
+        if (!pkgName) {
+            console.error('Usage: nux pkg info <name>');
+            process.exit(1);
+        }
+        if (!projectRoot) {
+            console.error('No nuxpackage.json found.');
+            process.exit(1);
+        }
+        const info = pkgManager.getPackageInfo(projectRoot, pkgName);
+        if (info) {
+            console.log(`Package: ${info.name}`);
+            console.log(`Version: ${info.version}`);
+            console.log(`Description: ${info.description || 'N/A'}`);
+            console.log(`Main: ${info.main || 'N/A'}`);
+            console.log(`Installed: ${info.installedAt || 'N/A'}`);
+        } else {
+            console.log(`Package ${pkgName} not installed`);
+        }
+    } else if (subcommand === 'create') {
+        if (!pkgName) {
+            console.error('Usage: nux pkg create <package-name> [description]');
+            process.exit(1);
+        }
+        const description = args.slice(3).join(' ') || `Package ${pkgName}`;
+        const pkgDir = path.resolve(pkgName);
+
+        if (fs.existsSync(pkgDir)) {
+            console.error(`Directory ${pkgName} already exists`);
+            process.exit(1);
+        }
+
+        fs.mkdirSync(pkgDir, { recursive: true });
+
+        const mainContent = pkgManager.generatePackageTemplate(pkgName, description);
+        fs.writeFileSync(path.join(pkgDir, 'main.nux'), mainContent);
+
+        const manifest = {
+            name: pkgName,
+            version: '0.1.0',
+            description,
+            main: 'main.nux',
+            dependencies: {}
+        };
+        fs.writeFileSync(path.join(pkgDir, 'nuxpackage.json'), JSON.stringify(manifest, null, 2));
+
+        console.log(`Created package ${pkgName} in ${pkgDir}`);
+        console.log('  - main.nux: package source code');
+        console.log('  - nuxpackage.json: package manifest');
+        console.log('');
+        console.log('Edit main.nux to add your functions.');
+        console.log('Users can install with: nux pkg install ' + path.relative(process.cwd(), pkgDir));
     } else {
         console.error(`Unknown pkg action: ${subcommand}`);
-        console.log('Available actions: install, list, remove');
+        console.log('Available actions: install, list, remove, update, search, info, create');
         process.exit(1);
     }
 } else if (command === 'init') {
@@ -296,9 +391,11 @@ if (command === 'run' || command === 'check') {
 
     // Create a basic.nux file
     const mainContent = `fn main() -> Int
-    print("Hello, nuxScript!")
+    print("Hello from nuxScript!")
     0
 end
+
+export main
 `;
     fs.writeFileSync(path.join(projectDir, 'main.nux'), mainContent);
 
@@ -318,9 +415,9 @@ A nuxScript project.
 
 ## Build and Run
 
-\`\`\ bash
+\`\`\`bash
 nux run main.nux
-\`\`\ 
+\`\`\`
 `;
     fs.writeFileSync(path.join(projectDir, 'README.md'), readmeContent);
 

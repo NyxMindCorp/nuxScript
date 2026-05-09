@@ -7,89 +7,49 @@
  */
 
 const {
-
     NumberLiteral,
-
     StringLiteral,
-
     BooleanLiteral,
-
     NullLiteral,
-
     ListLiteral,
-
     MapLiteral,
-
     ListComp,
-
     TemplateLiteral,
-
     Identifier,
-
     LetDeclaration,
-
     VarDeclaration,
-
     ConstDeclaration,
-
     Param,
-
     FnDeclaration,
-
     StructDeclaration,
-
     Property,
-
     EnumVariant,
-
     EnumDeclaration,
-
     BinaryExpr,
-
     UnaryExpr,
-
     CallExpr,
-
     IndexExpr,
-
     MemberExpr,
-
     PipeExpr,
-
     MatchCase,
-
     MatchExpr,
-
     IfExpr,
-
     ForExpr,
-
     WhileExpr,
-
     Block,
-
     LambdaExpr,
-
     SpawnExpr,
-
     AwaitExpr,
-
     FiberLiteral,
-
     TryExpr,
-
     ThrowExpr,
-
     ReturnStatement,
-
     BreakStatement,
-
     ContinueStatement,
-
     TypeAnnotation,
-
     UseStatement,
-
+    ExportStatement,
+    ImportStatement,
 } = require('../ast/nodes');
 
 class Parser {
@@ -198,6 +158,8 @@ class Parser {
 
         if (this.check('THROW')) return this.parseThrowStatement();
         if (this.check('YIELD')) return this.parseYieldStatement();
+        if (this.check('EXPORT')) return this.parseExportStatement();
+        if (this.check('IMPORT')) return this.parseImportStatement();
 
         return this.parseExprStatement();
 
@@ -399,6 +361,31 @@ class Parser {
         return new YieldExpr(value);
     }
 
+    parseExportStatement() {
+        this.advance();
+        const name = this.expect('IDENT', 'Expected export name').value;
+        return new ExportStatement(name, null);
+    }
+
+    parseImportStatement() {
+        this.advance();
+        const names = [];
+        let source = null;
+        if (this.check('STRING')) {
+            source = this.advance().value;
+        } else {
+            while (!this.check('FROM') && !this.isAtEnd() && !this.check('STRING')) {
+                names.push(this.expect('IDENT', 'Expected import name').value);
+                if (this.check('COMMA')) this.advance();
+            }
+            if (this.check('FROM')) {
+                this.advance();
+                source = this.expect('STRING', 'Expected module path').value;
+            }
+        }
+        return new ImportStatement(source, names);
+    }
+
     parseStructDeclaration() {
 
         this.advance();
@@ -476,27 +463,23 @@ class Parser {
     }
 
     parseUseStatement() {
-
         this.advance();
 
-        const path = [];
-
-        while (!this.check('IDENT') && !this.isAtEnd()) {
-
-            path.push(this.advance().value);
-
-            if (this.check('DOUBLE_COLON') || this.check('IDENT')) {
-
-                if (this.check('DOUBLE_COLON')) this.advance();
-
+        let modulePath;
+        if (this.check('STRING')) {
+            modulePath = this.advance().value;
+        } else if (this.check('IDENT')) {
+            const parts = [this.advance().value];
+            while (this.check('DOUBLE_COLON')) {
+                this.advance();
+                parts.push(this.expect('IDENT', 'Expected module name').value);
             }
-
+            modulePath = parts.join('::');
+        } else {
+            throw new Error('Expected module path string or identifier after use');
         }
 
-        const modulePath = this.advance().value;
-
         return new UseStatement(modulePath);
-
     }
 
     // --- Expressions ---

@@ -1,6 +1,6 @@
 {
   "name": "nuxscript-lib",
-  "version": "3.0.3",
+  "version": "4.0.0",
   "description": "A programming language with exclusive features: regex engine, query system, actors, macros, advanced data structures, type system, and custom operators",
   "main": "src/index.js",
   "bin": {

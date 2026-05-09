@@ -3,6 +3,8 @@
  * Compiles AST to bytecode instructions
  */
 
+const path = require('path');
+
 const {
     NODE_TYPES,
     NumberLiteral,
@@ -43,6 +45,7 @@ const {
     ContinueStatement,
     TryExpr,
     ThrowExpr,
+    UseStatement,
 } = require('../ast/nodes');
 
 // Bytecode opcodes
@@ -245,6 +248,8 @@ class Compiler {
                 return this.compileSpawn(node);
             case NODE_TYPES.AWAIT:
                 return this.compileAwait(node);
+            case NODE_TYPES.USE:
+                return this.compileUse(node);
             default:
                 throw new Error(`Unknown node type: ${node.type}`);
         }
@@ -805,7 +810,16 @@ class Compiler {
         this.emit(OPCODES.AWAIT_FIBER);
     }
 
+    compileUse(node) {
+        const moduleName = node.path || '';
+        const varName = path.basename(moduleName, '.nux').replace(/[^a-zA-Z0-9_]/g, '_');
 
+        const idx = this.addConstant(moduleName);
+        this.emit(OPCODES.LOAD_CONST, idx);
+        this.emit(OPCODES.LOAD_VAR, 'use');
+        this.emit(OPCODES.CALL, 1);
+        this.emit(OPCODES.STORE_VAR, varName || moduleName);
+    }
 
     compileFiberExpr(node) {
         // Compile the fiber body as a block

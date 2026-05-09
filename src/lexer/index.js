@@ -53,6 +53,8 @@ const KEYWORDS = new Map([
     ['nil', 'NIL'],
     ['Option', 'OPTION_TYPE'],
     ['Result', 'RESULT_TYPE'],
+    ['export', 'EXPORT'],
+    ['import', 'IMPORT'],
 ]);
 
 const SINGLE_TOKENS = new Map([

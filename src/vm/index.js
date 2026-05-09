@@ -313,18 +313,11 @@ const builtins = {
     coalesce: operatorBuiltins.coalesce,
     range_op: operatorBuiltins.range,
     cmp: operatorBuiltins.cmp,
-    // Package Loader (Package Manager)
-    pkg_install: (name, version = "latest") => {
-      const { install } = require('../package');
-      return install(name, version);
-    },
-    pkg_list: () => {
-      const { list } = require('../package');
-      return list();
-    },
-    pkg_remove: (name) => {
-      const { remove } = require('../package');
-      return remove(name);
+    // Module loader
+    use: (modName) => {
+      const { loadModule } = require('../module');
+      const exports = loadModule(modName, process.cwd());
+      return exports;
     },
 };
 
