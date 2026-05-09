@@ -863,56 +863,70 @@ class Parser {
 
             const name = this.advance().value;
 
+            // Check for arrow function: x => expr or (x) => expr
+            if (this.check('ARROW') || this.check('FAT_ARROW')) {
+                this.advance();
+                const body = this.parseExpr();
+                return new LambdaExpr([new Identifier(name)], body);
+            }
+
             return new Identifier(name);
 
+        }
+
+        // Arrow function: (x) => expr
+        if (this.check('LPAREN')) {
+            const startPos = this.current;
+            this.advance();
+            const params = [];
+            while (!this.check('RPAREN')) {
+                params.push(this.expect('IDENT', 'Expected param name'));
+                if (!this.check('RPAREN')) {
+                    this.expect('COMMA', 'Expected ,');
+                }
+            }
+            this.expect('RPAREN', 'Expected )');
+            if (this.check('ARROW') || this.check('FAT_ARROW')) {
+                this.advance();
+                const body = this.parseExpr();
+                return new LambdaExpr(params, body);
+            }
+            // Not a lambda - rollback and fall through
+            this.current = startPos;
         }
 
         if (this.check('DOT') || this.check('NULL_DOT')) {
 
             const isNull = this.check('NULL_DOT');
-
             this.advance(); // consume DOT or NULL_DOT
 
-            let obj = new Identifier('_');
+            // We expect an identifier (or maybe a number? but for now, ident) for the first property
+            const property = this.expect('IDENT', 'Expected property name').value;
+            let obj = new MemberExpr(new Identifier('_'), property, isNull);
 
             while (true) {
-
                 if (this.check('DOT')) {
-
                     this.advance();
-
                     const property = this.expect('IDENT', 'Expected property name').value;
-
                     obj = new MemberExpr(obj, property, false);
-
                 } else if (this.check('NULL_DOT')) {
-
                     this.advance();
-
                     const property = this.expect('IDENT', 'Expected property name').value;
-
                     obj = new MemberExpr(obj, property, true);
-
                 } else if (this.check('LBRACKET')) {
-
                     this.advance();
-
                     const index = this.parseExpr();
-
                     this.expect('RBRACKET', 'Expected ]');
-
                     obj = new IndexExpr(obj, index, isNull);
-
                 } else {
-
                     break;
-
                 }
-
             }
 
-            return obj;
-
+            // Now, we want to create a function that takes one argument and applies the chain to it.
+            // The chain we built uses the identifier '_' as the base.
+            // We create a lambda with one parameter named '_' and the body as `obj`.
+            return new LambdaExpr([new Identifier('_')], obj);
         }
 
         if (this.check('OK')) {

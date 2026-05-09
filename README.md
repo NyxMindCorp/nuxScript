@@ -104,7 +104,7 @@ let num = ast_node("NumberLiteral", {value: 42})
 let bin = ast_node("BinaryExpr", {op: "+", left: id, right: num})
 ```
 
-### 5. Built-in Functions
+### 6. Built-in Functions
 
 ```nux
 # Output
@@ -193,6 +193,11 @@ writeFile(path, content)
 fiber_create(fn, constants)
 resume(fiberRef)
 fibers
+
+# Package Loader (Package Manager)
+pkg_install(name, version)   # Install a package (version defaults to "latest")
+pkg_list()                   # List installed packages
+pkg_remove(name)             # Remove a package
 ```
 
 ### 6. Language Syntax
@@ -308,25 +313,22 @@ nux typecheck <file>  # Check types without running
 nux check <file>    # Type check + run
 nux ast <file>      # Print AST
 nux tokens <file>   # Print tokens
+nux pkg <action>      # Package manager (install, list, remove)
+nux init <name>       # Initialize a new nuxScript project
 ```
 
-## API
+## Project Manifest
 
-```javascript
-const { ReflectionBuiltin, CodeGenerator, ExternalParser } = require('nuxscript-lib');
+nuxScript uses a `nuxpackage.json` file (similar to Node.js' `package.json`) to define project metadata, dependencies, and scripts.
 
-// Reflection
-const fn = (x) => x + 1;
-console.log(ReflectionBuiltin.reflect(fn));
-
-// Code Generation
-const ast = { type: 'BinaryExpr', op: '+', left: { type: 'NumberLiteral', value: 1 }, right: { type: 'NumberLiteral', value: 2 } };
-const cg = new CodeGenerator();
-console.log(cg.generate(ast));
-
-// External Parser
-const code = 'const x = 1; function hello() { return x; }';
-console.log(ExternalParser.parseJS(code));
+Example `nuxpackage.json`:
+```json
+{
+  "name": "my-project",
+  "version": "0.1.0",
+  "main": "main.nux",
+  "dependencies": {}
+}
 ```
 
 ## Documentation

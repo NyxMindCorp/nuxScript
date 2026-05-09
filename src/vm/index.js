@@ -111,6 +111,8 @@ const builtins = {
     list: stdlib_list,
     string: stdlib_string,
     map: stdlib_map,
+    // Top-level filter for pipe operator
+    filter: stdlib_list.filter,
     // IO
     readFile: (path) => require('fs').readFileSync(path, 'utf-8'),
     writeFile: (path, content) => require('fs').writeFileSync(path, content),
@@ -311,6 +313,19 @@ const builtins = {
     coalesce: operatorBuiltins.coalesce,
     range_op: operatorBuiltins.range,
     cmp: operatorBuiltins.cmp,
+    // Package Loader (Package Manager)
+    pkg_install: (name, version = "latest") => {
+      const { install } = require('../package');
+      return install(name, version);
+    },
+    pkg_list: () => {
+      const { list } = require('../package');
+      return list();
+    },
+    pkg_remove: (name) => {
+      const { remove } = require('../package');
+      return remove(name);
+    },
 };
 
 class VM {

@@ -1,14 +1,14 @@
 {
   "name": "nuxscript-lib",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "description": "A programming language with exclusive features: regex engine, query system, actors, macros, advanced data structures, type system, and custom operators",
   "main": "src/index.js",
   "bin": {
     "nuxscript": "bin/nux.js",
     "nux": "bin/nux.js"
   },
-  "scripts": {
-    "test": "node bin/nux.js tests/*.nx",
+    "scripts": {
+    "test": "for f in tests/*.nux; do echo \"Testing $f\"; node bin/nux.js run \"$f\" || exit 1; done",
     "start": "node bin/nux.js"
   },
   "keywords": [
@@ -31,10 +31,15 @@
   "mcpServers": {
     "TestSprite": {
       "command": "npx",
-      "args": ["@testsprite/testsprite-mcp@latest"],
+      "args": [
+        "@testsprite/testsprite-mcp@latest"
+      ],
       "env": {
         "API_KEY": "your-api-key"
       }
     }
+  },
+  "dependencies": {
+    "@iarna/toml": "^1.7.1"
   }
 }
