@@ -1,0 +1,15 @@
+*.backup
+*.bak
+*.backorig
+*.backup*
+*.before_*
+.backup*
+.openclaude/
+tsconfig.json
+src/*.ts
+docs/
+tests/
+verify-final/
+final-test/
+final-verify/
+test-*/
