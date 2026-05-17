@@ -1,0 +1,15 @@
+# Test: Exhaustiveness checking
+enum Color
+    Red
+    Green
+    Blue
+end
+
+fn describe(c :: Color) -> String
+    match c
+        Red -> "red"
+        Green -> "green"
+    end
+end
+
+print(describe(Red))

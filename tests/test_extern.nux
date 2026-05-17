@@ -1,0 +1,5 @@
+# Test: Extern FFI
+extern js readFileSync(path :: String) -> String
+extern js writeFileSync(path :: String, content :: String)
+
+print("FFI extern functions declared")

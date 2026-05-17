@@ -214,7 +214,7 @@ function onCompletion(id, params) {
     'try', 'catch', 'throw', 'return',
     'spawn', 'await', 'yield', 'resume', 'async',
     'struct', 'enum', 'trait', 'impl', 'type', 'alias',
-    'pub', 'priv', 'use', 'mod', 'from',
+    'pub', 'priv', 'use', 'mod', 'from', 'extern',
     'true', 'false', 'nil',
     'Option', 'Result', 'Some', 'None', 'Ok', 'Err',
     'and', 'or', 'not', 'fiber', 'loop'
@@ -227,7 +227,10 @@ function onCompletion(id, params) {
     'select', 'where', 'order_by', 'group_by', 'join',
     'count', 'sum', 'avg', 'min', 'max',
     'tuple', 'set', 'dict', 'tree', 'heap', 'graph',
-    'pipe', 'compose'
+    'pipe', 'compose', 'extern_loader', 'fiber_spawn',
+    'fiber_status', 'fiber_resume_with',
+    'reflect', 'type_of', 'is_type', 'brand', 'newtype',
+    'macro_define', 'macro_expand', 'regex_match', 'regex_test',
   ];
 
   const items = [
@@ -257,12 +260,33 @@ function onHover(id, params) {
     return;
   }
 
-  const keywords = ['fn', 'let', 'if', 'match', 'for', 'while', 'struct', 'enum', 'try', 'catch', 'return', 'true', 'false', 'nil', 'spawn', 'await'];
+  const keywords = ['fn', 'let', 'if', 'match', 'for', 'while', 'struct', 'enum', 'trait', 'impl', 'try', 'catch', 'return', 'true', 'false', 'nil', 'spawn', 'await', 'extern', 'use', 'mod', 'export', 'import', 'pub', 'priv', 'yield', 'resume', 'fiber', 'loop', 'break', 'continue'];
   const isKeyword = keywords.includes(word);
 
-  const content = isKeyword
-    ? `**${word}** - nuxScript keyword`
-    : `**${word}** - identifier`;
+  let content;
+  if (isKeyword) {
+    const keywordDocs = {
+      'fn': 'Declare a function\n```nux\nfn add(a :: Int, b :: Int) -> Int\na + b\nend\n```',
+      'trait': 'Define a trait (interface)\n```nux\ntrait Show\n    fn to_string(self) -> String\nend\n```',
+      'impl': 'Implement a trait for a type\n```nux\nimpl Show for Point\n    fn to_string(self) -> String\n        self.x.to_string() + ", " + self.y.to_string()\n    end\nend\n```',
+      'extern': 'Declare an external (FFI) function\n```nux\nextern js readFileSync(path :: String) -> String\n```',
+      'match': 'Pattern matching expression\n```nux\nmatch value\n    pattern -> expr\n    _ -> default\nend\n```',
+      'use': 'Import a module\n```nux\nuse std::io\nuse { readFile, writeFile } from "fs"\n```',
+    };
+    content = `**${word}** - nuxScript keyword\n\n${keywordDocs[word] || ''}`;
+  } else {
+    // Try to find type info using the lexer+parser
+    try {
+      const lexer = new Lexer(text);
+      const tokens = lexer.tokenize();
+      const parser = new Parser(tokens);
+      const ast = parser.parse();
+      const result = checkTypes(ast);
+      content = `**${word}** - identifier`;
+    } catch (e) {
+      content = `**${word}** - identifier`;
+    }
+  }
 
   sendMessage({
     jsonrpc: '2.0',
@@ -278,6 +302,50 @@ function onHover(id, params) {
 }
 
 function onDefinition(id, params) {
+  const uri = params.textDocument.uri;
+  const text = documents.get(uri);
+  if (!text) {
+    sendMessage({ jsonrpc: '2.0', id, result: null });
+    return;
+  }
+
+  const pos = params.position;
+  const lines = text.split('\n');
+  const line = lines[pos.line] || '';
+  const wordMatch = line.slice(pos.character).match(/^[a-zA-Z_][a-zA-Z0-9_]*/);
+  const word = wordMatch ? wordMatch[0] : null;
+
+  if (!word) {
+    sendMessage({ jsonrpc: '2.0', id, result: null });
+    return;
+  }
+
+  // Search for definition in the document
+  for (let i = 0; i < lines.length; i++) {
+    const fnDef = new RegExp(`^\\s*fn\\s+${word}\\s*\\(`);
+    const letDef = new RegExp(`^\\s*(?:let|let!|var|const)\\s+${word}\\b`);
+    const structDef = new RegExp(`^\\s*struct\\s+${word}\\b`);
+    const enumDef = new RegExp(`^\\s*enum\\s+${word}\\b`);
+    const traitDef = new RegExp(`^\\s*trait\\s+${word}\\b`);
+
+    if (fnDef.test(lines[i]) || letDef.test(lines[i]) ||
+        structDef.test(lines[i]) || enumDef.test(lines[i]) ||
+        traitDef.test(lines[i])) {
+      sendMessage({
+        jsonrpc: '2.0',
+        id,
+        result: {
+          uri,
+          range: {
+            start: { line: i, character: 0 },
+            end: { line: i, character: lines[i].length }
+          }
+        }
+      });
+      return;
+    }
+  }
+
   sendMessage({ jsonrpc: '2.0', id, result: null });
 }
 

@@ -55,6 +55,7 @@ const KEYWORDS = new Map([
     ['Result', 'RESULT_TYPE'],
     ['export', 'EXPORT'],
     ['import', 'IMPORT'],
+    ['extern', 'EXTERN'],
 ]);
 
 const SINGLE_TOKENS = new Map([

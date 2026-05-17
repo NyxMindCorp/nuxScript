@@ -1,0 +1,18 @@
+# Test: Trait System
+trait Show
+    fn to_string(self) -> String
+end
+
+struct Point
+    x :: Int
+    y :: Int
+end
+
+impl Show for Point
+    fn to_string(self) -> String
+        "Point(" + self.x.to_string() + ", " + self.y.to_string() + ")"
+    end
+end
+
+let p = Point(10, 20)
+print(p.to_string())

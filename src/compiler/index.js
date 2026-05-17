@@ -109,6 +109,7 @@ const OPCODES = {
     AWAIT_FIBER: 'AWAIT_FIBER',
     FIBER_YIELD: 'FIBER_YIELD',
     FIBER_RESUME: 'FIBER_RESUME',
+    FIBER_RESUME_WITH: 'FIBER_RESUME_WITH',
 
     // Tail call
     TAIL_CALL: 'TAIL_CALL',
@@ -250,6 +251,12 @@ class Compiler {
                 return this.compileAwait(node);
             case NODE_TYPES.USE:
                 return this.compileUse(node);
+            case NODE_TYPES.TRAIT:
+                return this.compileTrait(node);
+            case NODE_TYPES.IMPL:
+                return this.compileImpl(node);
+            case NODE_TYPES.EXTERN_FN:
+                return this.compileExternFn(node);
             default:
                 throw new Error(`Unknown node type: ${node.type}`);
         }
@@ -434,9 +441,11 @@ class Compiler {
         const structInfo = {
             name: node.name,
             properties: node.properties.map(p => ({ name: p.name, type: p.typeAnnotation })),
+            __struct_def__: true,
         };
         const idx = this.addConstant(structInfo);
-        this.emit(OPCODES.MAKE_STRUCT, idx);
+        this.emit(OPCODES.LOAD_CONST, idx);
+        this.emit(OPCODES.STORE_VAR, node.name);
     }
 
     compileEnum(node) {
@@ -510,13 +519,25 @@ class Compiler {
     }
 
     compileCall(node) {
-        // Push arguments first (rightmost first for proper order on stack)
-        for (let i = node.args.length - 1; i >= 0; i--) {
-            this.compileNode(node.args[i]);
+        let argCount = 0;
+        // Count actual stack items (named args push 2 items: name + value)
+        for (const arg of node.args) {
+            argCount += (arg && arg.type === 'named_arg') ? 2 : 1;
+        }
+        // Push arguments left-to-right
+        for (let i = 0; i < node.args.length; i++) {
+            const arg = node.args[i];
+            if (arg && arg.type === 'named_arg') {
+                const idx = this.addConstant(arg.name);
+                this.emit(OPCODES.LOAD_CONST, idx);
+                this.compileNode(arg.value);
+            } else {
+                this.compileNode(arg);
+            }
         }
         // Then push the function
         this.compileNode(node.callee);
-        this.emit(OPCODES.CALL, node.args.length);
+        this.emit(OPCODES.CALL, argCount);
     }
 
     compileIndex(node) {
@@ -812,13 +833,30 @@ class Compiler {
 
     compileUse(node) {
         const moduleName = node.path || '';
-        const varName = path.basename(moduleName, '.nux').replace(/[^a-zA-Z0-9_]/g, '_');
+        const imports = node.imports || [];
+        const varName = path.basename(moduleName.replace(/\.nux$/, '').replace(/[^a-zA-Z0-9_:]/g, '_')).replace(/:/g, '_');
 
-        const idx = this.addConstant(moduleName);
-        this.emit(OPCODES.LOAD_CONST, idx);
-        this.emit(OPCODES.LOAD_VAR, 'use');
-        this.emit(OPCODES.CALL, 1);
-        this.emit(OPCODES.STORE_VAR, varName || moduleName);
+        if (imports.length > 0) {
+            // Selective import: use { foo, bar } from "module"
+            const importsIdx = this.addConstant(imports);
+            this.emit(OPCODES.LOAD_CONST, importsIdx);
+            const idx = this.addConstant(moduleName);
+            this.emit(OPCODES.LOAD_CONST, idx);
+            this.emit(OPCODES.LOAD_VAR, 'use');
+            this.emit(OPCODES.CALL, 2);
+            for (const name of imports) {
+                this.emit(OPCODES.DUP);
+                this.emit(OPCODES.GET_FIELD, name);
+                this.emit(OPCODES.STORE_VAR, name);
+            }
+            this.emit(OPCODES.POP);
+        } else {
+            const idx = this.addConstant(moduleName);
+            this.emit(OPCODES.LOAD_CONST, idx);
+            this.emit(OPCODES.LOAD_VAR, 'use');
+            this.emit(OPCODES.CALL, 1);
+            this.emit(OPCODES.STORE_VAR, varName || moduleName);
+        }
     }
 
     compileFiberExpr(node) {
@@ -837,6 +875,58 @@ class Compiler {
     compileYieldExpr(node) {
         this.compileNode(node.value);
         this.emit(OPCODES.FIBER_YIELD);
+    }
+
+    compileTrait(node) {
+        const traitInfo = {
+            name: node.name,
+            methods: node.methods.map(m => ({
+                name: m.name,
+                params: m.params.map(p => p.name),
+                returnType: m.returnType,
+            })),
+        };
+        const idx = this.addConstant(traitInfo);
+        this.emit(OPCODES.LOAD_CONST, idx);
+        this.emit(OPCODES.STORE_VAR, node.name);
+    }
+
+    compileImpl(node) {
+        for (const method of node.methods) {
+            const compiler = new Compiler([]);
+            for (const stmt of method.body.statements) {
+                compiler.compileNode(stmt);
+            }
+            const methodInfo = {
+                name: method.name,
+                traitName: node.traitName,
+                typeName: node.typeName,
+                params: method.params.map(p => p.name),
+                instructions: compiler.instructions,
+                constants: compiler.constants,
+                returnType: method.returnType,
+            };
+            // Register each method with the trait registry
+            const idx = this.addConstant(methodInfo);
+            this.emit(OPCODES.LOAD_CONST, idx);
+            this.emit(OPCODES.LOAD_VAR, 'trait_register');
+            this.emit(OPCODES.CALL, 1);
+            this.emit(OPCODES.POP);
+        }
+    }
+
+    compileExternFn(node) {
+        const externInfo = {
+            name: node.name,
+            nativeName: node.nativeName || node.name,
+            params: node.params.map(p => p.name),
+            returnType: node.returnType,
+        };
+        const idx = this.addConstant(externInfo);
+        this.emit(OPCODES.LOAD_CONST, idx);
+        this.emit(OPCODES.LOAD_VAR, 'extern_loader');
+        this.emit(OPCODES.CALL, 1);
+        this.emit(OPCODES.STORE_VAR, node.name);
     }
 
 }

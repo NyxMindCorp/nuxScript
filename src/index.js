@@ -12,6 +12,7 @@ const moduleLoader = require('./module');
 const repl = require('./repl');
 const watch = require('./watch');
 const lsp = require('./lsp');
+const utils = require('./utils');
 
 function execute(code) {
     const lexer = new Lexer(code);
@@ -36,4 +37,5 @@ module.exports = {
     repl,
     watch,
     lsp,
+    utils,
 };

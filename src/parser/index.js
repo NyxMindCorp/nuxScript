@@ -148,6 +148,12 @@ class Parser {
 
         if (this.check('ENUM')) return this.parseEnumDeclaration();
 
+        if (this.check('TRAIT')) return this.parseTraitDeclaration();
+
+        if (this.check('IMPL')) return this.parseImplDeclaration();
+
+        if (this.check('EXTERN')) return this.parseExternDeclaration();
+
         if (this.check('USE')) return this.parseUseStatement();
 
         if (this.check('RETURN')) return this.parseReturnStatement();
@@ -462,8 +468,91 @@ class Parser {
 
     }
 
+    parseTraitDeclaration() {
+        this.advance();
+        const name = this.expect('IDENT', 'Expected trait name').value;
+        const methods = [];
+
+        while (!this.check('END') && !this.isAtEnd()) {
+            if (this.check('FN')) {
+                this.advance();
+                const methodName = this.expect('IDENT', 'Expected method name').value;
+                this.expect('LPAREN', 'Expected (');
+                const params = this.parseParams();
+                this.expect('RPAREN', 'Expected )');
+                let returnType = null;
+                if (this.check('ARROW') || this.check('DOUBLE_COLON')) {
+                    returnType = this.parseTypeAnnotation();
+                }
+                methods.push(new (require('../ast/nodes').TraitMethod)(methodName, params, returnType));
+            } else {
+                break;
+            }
+        }
+
+        this.expect('END', 'Expected end');
+        return new (require('../ast/nodes').TraitDeclaration)(name, methods);
+    }
+
+    parseImplDeclaration() {
+        this.advance();
+        const traitName = this.expect('IDENT', 'Expected trait name').value;
+        this.expect('FOR', 'Expected for');
+        const typeName = this.expect('IDENT', 'Expected type name').value;
+        const methods = [];
+
+        while (!this.check('END') && !this.isAtEnd()) {
+            if (this.check('FN')) {
+                this.advance();
+                const methodName = this.expect('IDENT', 'Expected method name').value;
+                this.expect('LPAREN', 'Expected (');
+                const params = this.parseParams();
+                this.expect('RPAREN', 'Expected )');
+                let returnType = null;
+                if (this.check('ARROW') || this.check('DOUBLE_COLON')) {
+                    returnType = this.parseTypeAnnotation();
+                }
+                const body = this.parseBlock();
+                methods.push(new (require('../ast/nodes').FnDeclaration)(methodName, params, body, returnType));
+            } else {
+                break;
+            }
+        }
+
+        this.expect('END', 'Expected end');
+        return new (require('../ast/nodes').ImplDeclaration)(traitName, typeName, methods);
+    }
+
+    parseExternDeclaration() {
+        this.advance();
+        const lang = this.expect('IDENT', 'Expected language name').value;
+        this.expect('IDENT', 'Expected extern function name');
+        const name = this.peek(-1).value;
+
+        this.expect('LPAREN', 'Expected (');
+        const params = this.parseParams();
+        this.expect('RPAREN', 'Expected )');
+        let returnType = null;
+        if (this.check('ARROW') || this.check('DOUBLE_COLON')) {
+            returnType = this.parseTypeAnnotation();
+        }
+
+        return new (require('../ast/nodes').ExternFn)(name, params, returnType, name);
+    }
+
     parseUseStatement() {
         this.advance();
+
+        let imports = [];
+        if (this.check('LBRACE')) {
+            this.advance();
+            while (!this.check('RBRACE') && !this.isAtEnd()) {
+                const name = this.expect('IDENT', 'Expected import name').value;
+                imports.push(name);
+                if (!this.check('RBRACE')) this.expect('COMMA', 'Expected ,');
+            }
+            this.expect('RBRACE', 'Expected }');
+        }
 
         let modulePath;
         if (this.check('STRING')) {
@@ -479,7 +568,7 @@ class Parser {
             throw new Error('Expected module path string or identifier after use');
         }
 
-        return new UseStatement(modulePath);
+        return new UseStatement(modulePath, imports);
     }
 
     // --- Expressions ---

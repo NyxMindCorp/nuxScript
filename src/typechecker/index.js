@@ -35,6 +35,9 @@ const {
     ResultType,
     OptionType,
     ListType,
+    TraitDeclaration,
+    ImplDeclaration,
+    ExternFn,
 } = require('../ast/nodes');
 
 // Primitive type names
@@ -222,6 +225,9 @@ class TypeChecker {
             this.env.declareType(t, { kind: 'primitive', name: t });
         }
 
+        // Add built-in trait
+        this.env.declareType('Trait', { kind: 'builtin', name: 'Trait' });
+
         // Declare built-in generic types
         for (const [name, def] of Object.entries(builtinTypes)) {
             this.env.declareType(name, def);
@@ -274,6 +280,10 @@ class TypeChecker {
                 this.declareEnum(node);
             } else if (node.type === NODE_TYPES.FN) {
                 this.declareFn(node);
+            } else if (node.type === NODE_TYPES.TRAIT) {
+                this.declareTrait(node);
+            } else if (node.type === NODE_TYPES.IMPL) {
+                this.declareImpl(node);
             }
         }
     }
@@ -303,6 +313,49 @@ class TypeChecker {
             kind: 'enum',
             name: node.name,
             variants,
+        });
+    }
+
+    declareTrait(node) {
+        const methods = {};
+        for (const m of node.methods) {
+            methods[m.name] = {
+                params: m.params.map(p => ({
+                    name: p.name,
+                    type: p.typeAnnotation ? this.resolveType(p.typeAnnotation) : new Type('Any'),
+                })),
+                returnType: m.returnType ? this.resolveType(m.returnType) : new Type('Any'),
+            };
+        }
+        this.env.declareType(node.name, {
+            kind: 'trait',
+            name: node.name,
+            methods,
+        });
+    }
+
+    declareImpl(node) {
+        const traitDef = this.env.getType(node.traitName);
+        if (!traitDef || traitDef.kind !== 'trait') {
+            this.errors.push(new TypeError(`Trait '${node.traitName}' not found`, node));
+            return;
+        }
+
+        for (const method of node.methods) {
+            const traitMethod = traitDef.methods[method.name];
+            if (!traitMethod) {
+                this.errors.push(new TypeError(
+                    `Method '${method.name}' not found in trait '${node.traitName}'`, method
+                ));
+                continue;
+            }
+        }
+
+        // Register impl as a type relationship
+        this.env.declareType(`__impl_${node.traitName}_for_${node.typeName}`, {
+            kind: 'impl',
+            traitName: node.traitName,
+            typeName: node.typeName,
         });
     }
 
@@ -393,11 +446,15 @@ class TypeChecker {
             case NODE_TYPES.FN:
                 return this.checkFn(node);
             case NODE_TYPES.STRUCT:
-                // Already declared, check body
                 return this.checkStruct(node);
             case NODE_TYPES.ENUM:
-                // Already declared, nothing to check
                 return new Type('Nil');
+            case NODE_TYPES.TRAIT:
+                return new Type('Nil');
+            case NODE_TYPES.IMPL:
+                return new Type('Nil');
+            case NODE_TYPES.EXTERN_FN:
+                return this.checkExternFn(node);
             case NODE_TYPES.IF:
                 return this.checkIf(node);
             case NODE_TYPES.FOR:
@@ -557,6 +614,32 @@ class TypeChecker {
         const subjectType = this.inferType(node.subject);
         let resultType = new Type('Nil');
 
+        // Exhaustiveness checking
+        const typeDef = this.env.getType(subjectType.name);
+        if (typeDef && typeDef.kind === 'enum') {
+            const matchedVariants = new Set();
+            for (const c of node.cases) {
+                if (c.pattern.type === 'wildcard') {
+                    matchedVariants.add('__wildcard__');
+                    break;
+                }
+                if (c.pattern.type === 'enum') {
+                    matchedVariants.add(c.pattern.name);
+                }
+            }
+            if (!matchedVariants.has('__wildcard__')) {
+                const missing = typeDef.variants
+                    .filter(v => !matchedVariants.has(v.name))
+                    .map(v => v.name);
+                if (missing.length > 0) {
+                    this.warnings.push(new TypeError(
+                        `Non-exhaustive match: missing variants [${missing.join(', ')}] for enum '${subjectType.name}'`,
+                        node
+                    ));
+                }
+            }
+        }
+
         for (const c of node.cases) {
             const caseType = this.inferType(c.body);
             resultType = this.unifyTypes(resultType, caseType);
@@ -577,6 +660,24 @@ class TypeChecker {
 
         this.env = prevEnv;
         return lastType;
+    }
+
+    checkExternFn(node) {
+        const paramTypes = node.params.map(p => ({
+            name: p.name,
+            type: p.typeAnnotation ? this.resolveType(p.typeAnnotation) : new Type('Any'),
+        }));
+        const returnType = node.returnType
+            ? this.resolveType(node.returnType)
+            : new Type('Any');
+
+        this.env.declareFn(node.name, {
+            name: node.name,
+            params: paramTypes,
+            returnType,
+        });
+        this.env.declareVar(node.name, returnType);
+        return returnType;
     }
 
     checkReturn(node) {

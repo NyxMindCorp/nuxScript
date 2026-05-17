@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>nuxScript - Programming Language</title>
+    <title>nuxScript v4 - Programming Language</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -16,138 +16,183 @@
         <h1>nuxScript</h1>
         <ul>
             <li><a href="index.html">🏠 Início</a></li>
+            <li><a href="syntax.html">📝 Sintaxe</a></li>
+            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="traits.html">🔌 Traits</a></li>
+            <li><a href="modules.html">📦 Modules</a></li>
+            <li><a href="ffi.html">🔗 FFI</a></li>
+            <li><a href="concurrency.html">⚡ Concurrency</a></li>
+            <li><a href="fibers.html">🧵 Fibers</a></li>
             <li><a href="regex.html">🔍 Regex Engine</a></li>
             <li><a href="query.html">📊 Query System</a></li>
-            <li><a href="concurrency.html">⚡ Concurrency</a></li>
-            <li><a href="meta.html">🔧 Meta-programming</a></li>
-            <li><a href="datastructs.html">📦 Data Structures</a></li>
-            <li><a href="typesys.html">🏷️ Type System</a></li>
+            <li><a href="meta.html">🔧 Meta</a></li>
+            <li><a href="datastructs.html">📦 Data Structs</a></li>
             <li><a href="operators.html">🔣 Operators</a></li>
+            <li><a href="lsp.html">🖥️ LSP</a></li>
+            <li><a href="pkg.html">📦 Package Manager</a></li>
+            <li><a href="stdlib.html">📚 Stdlib</a></li>
+            <li><a href="cli.html">⚙️ CLI</a></li>
         </ul>
     </nav>
 
     <main>
-        <h1>nuxScript</h1>
-        <p class="subtitle">Linguagem de programação com funcionalidades exclusivas</p>
+        <h1>nuxScript v4</h1>
+        <p class="subtitle">Linguagem de programação tipada, expression-oriented, com funcionalidades exclusivas</p>
 
         <section>
             <h2>Quick Start</h2>
-            <pre><code># Install
-npm i -g nuxscript-lib
-
-# Run
-nux run hello.nux
+            <pre><code>npm i -g nuxscript-lib
 
 # hello.nux
-print("Hello, nuxScript!")</code></pre>
+print("Hello, nuxScript!")
+
+nux run hello.nux</code></pre>
         </section>
 
         <section>
-            <h2>⭐ Features Exclusivas</h2>
+            <h2>⭐ Features v4</h2>
             <div class="features">
                 <div class="feature">
-                    <h3>🔍 Regex Engine</h3>
-                    <p>Sintaxe única com match operator, destructuring groups</p>
-                    <pre><code>let pattern = r"/(\w+)@(\w+)\.(\w+)/"
-email ~/r "^\w+@\w+\.\w+$"</code></pre>
+                    <h3>🔌 Trait System</h3>
+                    <p>Interfaces com dispatch dinâmico</p>
+                    <pre><code>trait Show
+    fn to_string(self) -> String
+end
+
+impl Show for Point
+    fn to_string(self) -> String
+        "Point({self.x}, {self.y})"
+    end
+end</code></pre>
                 </div>
-                
+
+                <div class="feature">
+                    <h3>📦 Module System</h3>
+                    <p>Import seletivo com use/from</p>
+                    <pre><code>use std::json
+use { read, write } from "fs"</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>🔗 FFI (Extern)</h3>
+                    <p>Chamar JS nativamente</p>
+                    <pre><code>extern js readFileSync(path) -> String
+let data = readFileSync("file.txt")</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>🧵 Fibers</h3>
+                    <p>Multitarefa cooperativa</p>
+                    <pre><code>let gen = fiber {
+    yield 1; yield 2; yield 3
+}
+match resume(gen) {
+    {status: "running", value: v} -> v
+}</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>✅ Exhaustiveness</h3>
+                    <p>Verificação de match completo</p>
+                    <pre><code>match color
+    Red -> "red"
+    Green -> "green"
+    # warning: missing Blue
+end</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>📦 Package Registry</h3>
+                    <p>15 pacotes std no GitHub</p>
+                    <pre><code>nux pkg install std::json
+nux pkg install std::http
+nux pkg registry</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>🖥️ LSP</h3>
+                    <p>IDE support completo</p>
+                    <pre><code>nux lsp
+# go-to-definition, hover,
+# completions, diagnostics</code></pre>
+                </div>
+
+                <div class="feature">
+                    <h3>🔍 Regex Engine</h3>
+                    <p>Regex nativo com sintaxe única</p>
+                    <pre><code>let r = r"/(\w+)@(\w+)/"
+r ~/r email</code></pre>
+                </div>
+
                 <div class="feature">
                     <h3>📊 Query System</h3>
-                    <p>LINQ-like queries para dados: select, where, groupBy, join</p>
+                    <p>SQL-like queries para dados</p>
                     <pre><code>users |> where(.age > 18)
-     |> order_by("name")
-     |> select("name")</code></pre>
+      |> order_by("name")
+      |> select("name")</code></pre>
                 </div>
-                
+
                 <div class="feature">
                     <h3>⚡ Concurrency</h3>
-                    <p>Actors, Channels, CSP-style (como Elixir/Erlang)</p>
+                    <p>Actors, Channels, CSP</p>
                     <pre><code>let counter = actor(fn(state, msg) => ...)
 send_to(counter, "inc")</code></pre>
                 </div>
-                
+
                 <div class="feature">
                     <h3>🔧 Meta-programming</h3>
-                    <p>Macros, AST manipulation, compile-time evaluation</p>
+                    <p>Macros, AST manipulation</p>
                     <pre><code>macro_define("assert", ...)
 ast_parse("let x = 1")</code></pre>
                 </div>
-                
-                <div class="feature">
-                    <h3>📦 Data Structures</h3>
-                    <p>Tuple, Set, Dict, Tree, Heap, Graph</p>
-                    <pre><code>let t = tuple(1, 2, 3)
-let g = graph()</code></pre>
-                </div>
-                
+
                 <div class="feature">
                     <h3>🏷️ Type System</h3>
-                    <p>Refinements, Brands, Newtypes, Opaque types</p>
-                    <pre><code>pos()              // positive number
-email()            // valid email</code></pre>
-                </div>
-                
-                <div class="feature">
-                    <h3>🔣 Custom Operators</h3>
-                    <p>Pipeline, null-safe, spaceship, composition</p>
-                    <pre><code>a |> f           // pipe
-x ?? default   // coalesce
-a <=> b        // spaceship</code></pre>
+                    <p>Refinements, Brands, Newtypes</p>
+                    <pre><code>let positive = pos()
+let valid_email = email()</code></pre>
                 </div>
             </div>
         </section>
 
         <section>
-            <h2>Installation</h2>
-            <pre><code># Global (recommended)
-npm i -g nuxscript-lib
-
-# Local
-npm install nuxscript-lib</code></pre>
-        </section>
-
-        <section>
-            <h2>Basic Syntax</h2>
-            <pre><code># Variables
-let x = 10           # immutable
-var y = 20          # mutable
-const MAX = 100
-
-# Functions
-fn add(a :: Int, b :: Int) -> Int
-    a + b
+            <h2>Exemplos Completos</h2>
+            <pre><code># Trait + Struct + Pipe
+trait Show
+    fn to_string(self) -> String
 end
 
-# Structs
-struct Point
-    x :: Int
-    y :: Int
+struct User
+    name :: String
+    age  :: Int
 end
 
-# Enums
-enum Status
-    Pending
-    Done(result :: String)
-    Failed(error :: String)
+impl Show for User
+    fn to_string(self) -> String
+        "{self.name} ({self.age})"
+    end
 end
 
-# Pattern matching
-match value
-    Ok(v)   -> print("Success: {v}")
-    Err(e)  -> print("Error: {e}")
-end
+let users = [
+    User("Alice", 30)
+    User("Bob", 25)
+    User("Charlie", 35)
+]
 
-# Pipe
-[1, 2, 3] |> filter(fn(x) => x > 1)
-        |> map(fn(x) => x * 2)</code></pre>
+let result = users
+    |> filter(fn(u) => u.age > 25)
+    |> map(fn(u) => u.to_string())
+    |> join(", ")
+
+print("Active: {result}")</code></pre>
         </section>
 
         <section>
             <h2>Links</h2>
             <ul>
-                <li><a href="https://npmjs.com/package/nuxscript-lib">npm</a></li>
-                <li><a href="https://github.com/NyxMindCorp/nuxScript">GitHub</a></li>
+                <li><a href="https://npmjs.com/package/nuxscript-lib">npm: nuxscript-lib</a></li>
+                <li><a href="https://github.com/Sldark23/nuxScript">GitHub</a></li>
+                <li><a href="https://github.com/Sldark23/nux-pacotes">Package Registry</a></li>
             </ul>
         </section>
     </main>

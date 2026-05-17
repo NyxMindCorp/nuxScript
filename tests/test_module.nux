@@ -1,0 +1,4 @@
+# Test: Module system with use
+use std::io
+
+print("Module system works!")

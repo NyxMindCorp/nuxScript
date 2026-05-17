@@ -56,7 +56,7 @@ function findModuleFile(name, baseDir) {
   return null;
 }
 
-function loadModule(name, callerDir) {
+function loadModule(name, callerDir, importNames = []) {
   const moduleFile = findModuleFile(name, callerDir);
   if (!moduleFile) {
     throw new Error(`Module not found: ${name}`);
@@ -64,7 +64,15 @@ function loadModule(name, callerDir) {
 
   const resolved = path.resolve(moduleFile);
   if (moduleCache.has(resolved)) {
-    return moduleCache.get(resolved);
+    const cached = moduleCache.get(resolved);
+    if (importNames.length > 0) {
+      const filtered = {};
+      for (const n of importNames) {
+        if (cached[n] !== undefined) filtered[n] = cached[n];
+      }
+      return filtered;
+    }
+    return cached;
   }
 
   const code = fs.readFileSync(resolved, 'utf-8');
@@ -80,8 +88,16 @@ function loadModule(name, callerDir) {
     vm.variables.set(key, value);
   }
 
-  vm.variables.set('use', (modName) => {
-    const exports = loadModule(modName, path.dirname(resolved));
+  vm.variables.set('use', (modName, modImportNames) => {
+    const exports = loadModule(modName, path.dirname(resolved), modImportNames || []);
+    if (modImportNames && modImportNames.length > 0) {
+      for (const key of Object.keys(exports)) {
+        if (modImportNames.includes(key)) {
+          vm.variables.set(key, exports[key]);
+        }
+      }
+      return exports;
+    }
     for (const [key, value] of Object.entries(exports)) {
       vm.variables.set(key, value);
     }
@@ -100,6 +116,15 @@ function loadModule(name, callerDir) {
   }
 
   moduleCache.set(resolved, exports);
+
+  if (importNames.length > 0) {
+    const filtered = {};
+    for (const n of importNames) {
+      if (exports[n] !== undefined) filtered[n] = exports[n];
+    }
+    return filtered;
+  }
+
   return exports;
 }
 

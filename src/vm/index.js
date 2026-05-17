@@ -313,11 +313,83 @@ const builtins = {
     coalesce: operatorBuiltins.coalesce,
     range_op: operatorBuiltins.range,
     cmp: operatorBuiltins.cmp,
+    // Trait registry (trait name -> method name -> type -> function)
+    trait_registry: new Map(),
+    trait_register: (methodInfo) => {
+        const { traitName, typeName, name } = methodInfo;
+        if (!builtins.trait_registry.has(traitName)) {
+            builtins.trait_registry.set(traitName, new Map());
+        }
+        const traitMethods = builtins.trait_registry.get(traitName);
+        if (!traitMethods.has(name)) {
+            traitMethods.set(name, new Map());
+        }
+        traitMethods.get(name).set(typeName, methodInfo);
+    },
+    trait_lookup: (typeName, methodName) => {
+        for (const [traitName, methods] of builtins.trait_registry) {
+            if (methods.has(methodName)) {
+                const typeMap = methods.get(methodName);
+                if (typeMap.has(typeName)) {
+                    return typeMap.get(typeName);
+                }
+            }
+        }
+        return null;
+    },
+
     // Module loader
     use: (modName) => {
       const { loadModule } = require('../module');
       const exports = loadModule(modName, process.cwd());
       return exports;
+    },
+
+    // Extern function loader (FFI)
+    extern_loader: (externInfo) => {
+        const nativeName = externInfo.nativeName || externInfo.name;
+        try {
+            const nativeFn = require(externInfo.lang || 'fs')[nativeName];
+            if (typeof nativeFn === 'function') {
+                return function(...args) {
+                    return nativeFn(...args);
+                };
+            }
+        } catch (e) {
+            // Fallback: create a wrapper function
+            return function(...args) {
+                throw new Error(`Extern function '${nativeName}' not available`);
+            };
+        }
+    },
+
+    // Fiber system enhancement
+    fiber_spawn: (fn, args) => {
+        const vm = new VM({ instructions: fn.instructions, constants: fn.constants });
+        vm.variables = new Map();
+        for (let i = 0; i < (fn.params || []).length; i++) {
+            vm.variables.set(fn.params[i], (args || [])[i] || null);
+        }
+        const fiberRef = { __fiber__: 'spawned_' + Date.now(), vm };
+        builtins.fibers.set(fiberRef.__fiber__, { vm, status: 'running' });
+        return fiberRef;
+    },
+    fiber_status: (fiberRef) => {
+        if (!fiberRef || !fiberRef.__fiber__) return null;
+        const fiber = builtins.fibers.get(fiberRef.__fiber__);
+        return fiber ? fiber.status : 'unknown';
+    },
+    fiber_resume_with: (fiberRef, arg) => {
+        if (!fiberRef || !fiberRef.__fiber__) return null;
+        const fiber = builtins.fibers.get(fiberRef.__fiber__);
+        if (!fiber) return null;
+        fiber.status = 'running';
+        const result = fiber.vm.run();
+        if (fiber.vm.hasYielded) {
+            return { status: "running", value: fiber.vm.yieldedValue };
+        }
+        fiber.status = 'finished';
+        return { status: "finished", value: result };
     },
 };
 
@@ -505,7 +577,24 @@ class VM {
                     args.unshift(this.stack.pop());
                 }
 
-                if (typeof fn === 'function') {
+                // Struct constructor call
+                if (fn && fn.__struct_def__) {
+                    const instance = {};
+                    // Process interleaved name-value pairs for named args
+                    let argIdx = 0;
+                    while (argIdx < args.length) {
+                        if (typeof args[argIdx] === 'string' && argIdx + 1 < args.length) {
+                            const key = args[argIdx++];
+                            instance[key] = args[argIdx++];
+                        } else if (argIdx < fn.properties.length) {
+                            instance[fn.properties[argIdx].name] = args[argIdx++];
+                        } else {
+                            argIdx++;
+                        }
+                    }
+                    instance.__struct__ = fn.name;
+                    this.stack.push(instance);
+                } else if (typeof fn === 'function') {
                     const result = fn(...args);
                     if (result === __THROW__) {
                         const msg = args[0] || 'Unknown error';
@@ -591,7 +680,34 @@ class VM {
             case OPCODES.GET_FIELD: {
                 const obj = this.stack.pop();
                 if (obj == null) throw new Error(`Cannot get field '${operand}' of null`);
-                this.stack.push(obj[operand]);
+                const self = this;
+                if (typeof obj === 'object' && operand in obj) {
+                    this.stack.push(obj[operand]);
+                } else if (obj && obj.__struct__) {
+                    const methodInfo = builtins.trait_lookup(obj.__struct__, operand);
+                    if (methodInfo) {
+                        const boundFn = function(...args) {
+                            const fnVm = new VM({
+                                instructions: methodInfo.instructions,
+                                constants: methodInfo.constants,
+                            }, self);
+                            fnVm.variables = new Map(self.variables);
+                            fnVm.variables.set(methodInfo.params[0], obj);
+                            for (let i = 1; i < methodInfo.params.length; i++) {
+                                fnVm.variables.set(methodInfo.params[i], args[i - 1] || null);
+                            }
+                            return fnVm.run();
+                        };
+                        this.stack.push(boundFn);
+                    } else {
+                        this.stack.push(obj[operand]);
+                    }
+                } else if (typeof obj === 'object' && obj !== null) {
+                    this.stack.push(obj[operand]);
+                } else {
+                    // For primitives, use property access (e.g., string.length)
+                    this.stack.push(obj[operand]);
+                }
                 break;
             }
 
@@ -755,6 +871,29 @@ class VM {
                 fiberVm.variables = new Map(this.variables);
                 this.fibers.set(fiberId, { vm: fiberVm, status: 'created' });
                 this.stack.push({ __fiber__: fiberId, vm: fiberVm });
+                break;
+            }
+            case OPCODES.FIBER_RESUME_WITH: {
+                const arg = this.stack.pop();
+                const fiberRef = this.stack.pop();
+                if (fiberRef && fiberRef.__fiber__) {
+                    const fiber = this.fibers.get(fiberRef.__fiber__);
+                    if (fiber) {
+                        fiber.vm.variables.set('__resume_arg__', arg);
+                        fiber.status = 'running';
+                        const result = fiber.vm.run();
+                        if (fiber.vm.hasYielded) {
+                            this.stack.push({ status: "running", value: fiber.vm.yieldedValue });
+                        } else {
+                            fiber.status = 'finished';
+                            this.stack.push({ status: "finished", value: result });
+                        }
+                    } else {
+                        this.stack.push(null);
+                    }
+                } else {
+                    this.stack.push(null);
+                }
                 break;
             }
             default:

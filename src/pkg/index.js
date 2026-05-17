@@ -1,9 +1,14 @@
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
+const https = require('https');
 
 const NUX_MODULES_DIR = 'nux_modules';
 
-const DEFAULT_REGISTRY = 'https://registry.nuxscript.dev';
+const DEFAULT_REGISTRY = 'https://raw.githubusercontent.com/Sldark23/nux-pacotes/master';
+const REGISTRY_API = 'https://api.github.com/repos/Sldark23/nux-pacotes';
+
+const PACKAGE_CACHE = new Map();
 
 function copyDirSync(src, dest) {
   fs.mkdirSync(dest, { recursive: true });
@@ -18,12 +23,36 @@ function copyDirSync(src, dest) {
   }
 }
 
+function httpGet(url, timeout = 5000) {
+  return new Promise((resolve, reject) => {
+    const client = url.startsWith('https') ? https : http;
+    const req = client.get(url, { timeout }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch {
+          resolve(data);
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('Timeout')); });
+  });
+}
+
 const npmToNux = new Map([
   ['lodash', { name: 'lodash-nux', description: 'Lodash utilities for nuxScript', version: '1.0.0' }],
   ['express', { name: 'express-nux', description: 'Web framework for nuxScript', version: '0.5.0' }],
   ['axios', { name: 'axios-nux', description: 'HTTP client for nuxScript', version: '0.8.0' }],
   ['moment', { name: 'moment-nux', description: 'Date library for nuxScript', version: '1.2.0' }],
+  ['react', { name: 'react-nux', description: 'UI library for nuxScript', version: '0.1.0' }],
+  ['vue', { name: 'vue-nux', description: 'Reactive UI framework for nuxScript', version: '0.1.0' }],
 ]);
+
+// Registry package cache
+const registryPackages = null; // Lazy-loaded
 
 function resolveProjectRoot(startDir) {
   let dir = startDir || process.cwd();
@@ -98,6 +127,122 @@ function searchRegistry(packageName) {
   return npmToNux.get(packageName) || null;
 }
 
+function fetchRegistryIndex() {
+  return new Promise((resolve, reject) => {
+    const url = `${DEFAULT_REGISTRY}/api-packages.json`;
+    https.get(url, { timeout: 10000 }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+function fetchPackageManifest(namespace, name) {
+  return new Promise((resolve, reject) => {
+    const url = `${DEFAULT_REGISTRY}/packages/${namespace}/${name}/nuxpackage.json`;
+    https.get(url, { timeout: 10000 }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => {
+        try {
+          resolve(JSON.parse(data));
+        } catch (e) {
+          resolve(null);
+        }
+      });
+    }).on('error', reject);
+  });
+}
+
+function fetchPackageFile(namespace, name, filename) {
+  return new Promise((resolve, reject) => {
+    const url = `${DEFAULT_REGISTRY}/packages/${namespace}/${name}/${filename}`;
+    https.get(url, { timeout: 10000 }, (res) => {
+      let data = '';
+      res.on('data', chunk => data += chunk);
+      res.on('end', () => resolve(data));
+    }).on('error', reject);
+  });
+}
+
+function installPackageFromRegistry(projectRoot, namespace, packageName, version) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const manifest = readManifest(projectRoot);
+      if (!manifest) {
+        resolve({ success: false, message: 'No nuxpackage.json found. Run nux init first.' });
+        return;
+      }
+
+      const modulesDir = ensureModulesDir(projectRoot);
+      const fullName = `${namespace}::${packageName}`;
+      const installedDir = path.join(modulesDir, fullName);
+
+      if (fs.existsSync(installedDir)) {
+        resolve({ success: false, message: `Package ${fullName} is already installed` });
+        return;
+      }
+
+      // Fetch package manifest from registry
+      const pkgManifest = await fetchPackageManifest(namespace, packageName);
+      if (!pkgManifest) {
+        resolve({ success: false, message: `Package ${fullName} not found in registry` });
+        return;
+      }
+
+      fs.mkdirSync(installedDir, { recursive: true });
+
+      // Download main.nux
+      const mainContent = await fetchPackageFile(namespace, packageName, pkgManifest.main || 'main.nux');
+      if (mainContent) {
+        fs.writeFileSync(path.join(installedDir, pkgManifest.main || 'main.nux'), mainContent);
+      }
+
+      // Save manifest
+      pkgManifest.installedAt = new Date().toISOString();
+      fs.writeFileSync(path.join(installedDir, 'nuxpackage.json'), JSON.stringify(pkgManifest, null, 2));
+
+      // Update project manifest
+      manifest.dependencies = manifest.dependencies || {};
+      manifest.dependencies[fullName] = `^${pkgManifest.version}`;
+      writeManifest(projectRoot, manifest);
+
+      resolve({
+        success: true,
+        message: `Installed ${fullName}@${pkgManifest.version} from registry`,
+        package: { name: fullName, version: pkgManifest.version }
+      });
+    } catch (e) {
+      resolve({ success: false, message: `Failed to install from registry: ${e.message}` });
+    }
+  });
+}
+
+function searchRegistryPackages(query) {
+  return new Promise(async (resolve) => {
+    try {
+      const index = await fetchRegistryIndex();
+      if (index && index.packages) {
+        const results = index.packages.filter(p =>
+          p.name.includes(query) || p.description.includes(query)
+        );
+        resolve(results);
+      } else {
+        resolve([]);
+      }
+    } catch (e) {
+      resolve([]);
+    }
+  });
+}
+
 function fetchPackageInfo(name, version) {
   const local = searchRegistry(name);
   if (local) {
@@ -109,6 +254,19 @@ function fetchPackageInfo(name, version) {
       source: 'registry'
     };
   }
+
+  // Check API-based registry if available
+  if (PACKAGE_CACHE.has(name)) {
+    const cached = PACKAGE_CACHE.get(name);
+    return {
+      name,
+      resolvedName: cached.name || name,
+      version: version || cached.version || '1.0.0',
+      description: cached.description || `Package ${name}`,
+      source: 'cache'
+    };
+  }
+
   return {
     name,
     resolvedName: name,
@@ -116,6 +274,22 @@ function fetchPackageInfo(name, version) {
     description: `Package ${name}`,
     source: 'remote'
   };
+}
+
+async function searchRemoteRegistry(query) {
+  try {
+    const url = `${DEFAULT_REGISTRY}/api/search?q=${encodeURIComponent(query)}`;
+    const results = await httpGet(url);
+    if (Array.isArray(results)) {
+      for (const pkg of results) {
+        PACKAGE_CACHE.set(pkg.name, pkg);
+      }
+      return results;
+    }
+  } catch (e) {
+    // Fallback to local search
+  }
+  return null;
 }
 
 function generatePackageCode(name, version) {
@@ -331,13 +505,41 @@ function updatePackages(projectRoot) {
   };
 }
 
-function searchPackages(query) {
+function searchPackagesSync(query) {
   const results = [];
   for (const [name, info] of npmToNux) {
     if (name.includes(query) || info.name.includes(query) || info.description.includes(query)) {
       results.push({ name, resolvedName: info.name, version: info.version, description: info.description });
     }
   }
+  return results;
+}
+
+function searchPackages(query) {
+  const results = searchPackagesSync(query);
+  return results;
+}
+
+async function searchPackagesAsync(query) {
+  const results = searchPackagesSync(query);
+  try {
+    const remote = await searchRemoteRegistry(query);
+    if (remote) {
+      for (const pkg of remote) {
+        if (!results.find(r => r.name === pkg.name)) {
+          results.push(pkg);
+        }
+      }
+    }
+  } catch (e) {}
+  try {
+    const registryPkgs = await searchRegistryPackages(query);
+    for (const pkg of registryPkgs) {
+      if (!results.find(r => r.name === pkg.name)) {
+        results.push({ name: pkg.name, resolvedName: pkg.name, version: pkg.version, description: pkg.description });
+      }
+    }
+  } catch (e) {}
   return results;
 }
 
@@ -365,15 +567,21 @@ function resolveModulePath(projectRoot, moduleName) {
 
 module.exports = {
   installPackage,
+  installPackageFromRegistry,
   removePackage,
   listPackages,
   updatePackages,
   searchPackages,
+  searchPackagesAsync,
   getPackageInfo,
   resolveModulePath,
   readManifest,
   writeManifest,
   resolveProjectRoot,
   generatePackageCode,
-  generatePackageTemplate
+  generatePackageTemplate,
+  fetchRegistryIndex,
+  fetchPackageManifest,
+  DEFAULT_REGISTRY,
+  REGISTRY_API
 };

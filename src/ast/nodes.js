@@ -78,6 +78,15 @@ const NODE_TYPES = {
     EXPORT: 'ExportStatement',
     IMPORT: 'ImportStatement',
 
+    // Traits
+    TRAIT: 'TraitDeclaration',
+    IMPL: 'ImplDeclaration',
+    TRAIT_METHOD: 'TraitMethod',
+
+    // FFI
+    EXTERN: 'ExternDeclaration',
+    EXTERN_FN: 'ExternFn',
+
     // New additions
     NAMED_ARG: 'NamedArg',
     STRUCT_INSTANTIATION: 'StructInstantiation',
@@ -422,6 +431,36 @@ class YieldExpr extends ASTNode {
         super(NODE_TYPES.YIELD_EXPR, { value });
     }
 }
+class TraitDeclaration extends ASTNode {
+    constructor(name, methods, isPub = false) {
+        super(NODE_TYPES.TRAIT, { name, methods, isPub });
+    }
+}
+
+class TraitMethod extends ASTNode {
+    constructor(name, params, returnType = null) {
+        super(NODE_TYPES.TRAIT_METHOD, { name, params, returnType });
+    }
+}
+
+class ImplDeclaration extends ASTNode {
+    constructor(traitName, typeName, methods, isPub = false) {
+        super(NODE_TYPES.IMPL, { traitName, typeName, methods, isPub });
+    }
+}
+
+class ExternDeclaration extends ASTNode {
+    constructor(lang, name, returnType = null) {
+        super(NODE_TYPES.EXTERN, { lang, name, returnType });
+    }
+}
+
+class ExternFn extends ASTNode {
+    constructor(name, params, returnType, nativeName = null) {
+        super(NODE_TYPES.EXTERN_FN, { name, params, returnType, nativeName });
+    }
+}
+
 module.exports = {
     NODE_TYPES,
     ASTNode,
@@ -475,6 +514,11 @@ module.exports = {
     StructInstantiation,
     ExportStatement,
     ImportStatement,
+    TraitDeclaration,
+    TraitMethod,
+    ImplDeclaration,
+    ExternDeclaration,
+    ExternFn,
 
     // AST Metadata / Reflection (references to classes below)
     ASTMeta: null,

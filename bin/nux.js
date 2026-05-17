@@ -249,21 +249,53 @@ if (command === 'run' || command === 'check') {
 
     if (!subcommand) {
         console.error('Usage: nux pkg <action> [name] [version]');
-        console.log('Actions: install, list, remove, update, search, info, create');
+        console.log('');
+        console.log('Actions:');
+        console.log('  install <name>     Install a package (local or from registry)');
+        console.log('  list               List installed packages');
+        console.log('  remove <name>      Remove a package');
+        console.log('  update             Update all packages');
+        console.log('  search <query>     Search packages in registry');
+        console.log('  info <name>        Show package info');
+        console.log('  create <name>      Create a new package');
+        console.log('  registry           Show registry info');
+        console.log('');
+        console.log('Registry packages use :: namespace:');
+        console.log('  nux pkg install std::json');
+        console.log('  nux pkg install std::http');
+        console.log('  nux pkg search json');
         process.exit(1);
     }
 
     if (subcommand === 'install') {
         if (!pkgName) {
             console.error('Usage: nux pkg install <name> [version]');
+            console.log('');
+            console.log('Examples:');
+            console.log('  nux pkg install std::json');
+            console.log('  nux pkg install std::http@1.0.0');
+            console.log('  nux pkg install ./path/to/package');
             process.exit(1);
         }
         if (!projectRoot) {
             console.error('No nuxpackage.json found. Run nux init first.');
             process.exit(1);
         }
-        const result = pkgManager.installPackage(projectRoot, pkgName, version);
-        console.log(result.message);
+        // Check if it's a registry package (contains ::)
+        if (pkgName.includes('::')) {
+            const parts = pkgName.split('::');
+            const namespace = parts[0];
+            const name = parts[1];
+            const nameVersion = name.split('@');
+            const pkgVersion = nameVersion[1] || version;
+            const cleanName = nameVersion[0];
+            pkgManager.installPackageFromRegistry(projectRoot, namespace, cleanName, pkgVersion)
+                .then(result => console.log(result.message))
+                .catch(err => console.error('Install failed:', err.message));
+        } else {
+            const result = pkgManager.installPackage(projectRoot, pkgName, version);
+            console.log(result.message);
+        }
     } else if (subcommand === 'list') {
         if (!projectRoot) {
             console.error('No nuxpackage.json found.');
@@ -306,15 +338,23 @@ if (command === 'run' || command === 'check') {
             console.error('Usage: nux pkg search <query>');
             process.exit(1);
         }
-        const results = pkgManager.searchPackages(pkgName);
         console.log(`Search results for "${pkgName}":`);
-        if (results.length === 0) {
-            console.log('  (no results)');
-        } else {
-            for (const pkg of results) {
-                console.log(`  ${pkg.name} - ${pkg.description}`);
-            }
+        const localResults = pkgManager.searchPackages(pkgName);
+        for (const pkg of localResults) {
+            console.log(`  ${pkg.name} - ${pkg.description}`);
         }
+        // Fetch registry results async
+        pkgManager.searchPackagesAsync(pkgName).then(remoteResults => {
+            const remoteOnly = remoteResults.filter(r => !localResults.find(l => l.name === r.name));
+            for (const pkg of remoteOnly) {
+                console.log(`  ${pkg.name} - ${pkg.description} [registry]`);
+            }
+            if (localResults.length === 0 && remoteOnly.length === 0) {
+                console.log('  (no results)');
+            }
+        }).catch(() => {
+            if (localResults.length === 0) console.log('  (no results)');
+        });
     } else if (subcommand === 'info') {
         if (!pkgName) {
             console.error('Usage: nux pkg info <name>');
@@ -367,9 +407,29 @@ if (command === 'run' || command === 'check') {
         console.log('');
         console.log('Edit main.nux to add your functions.');
         console.log('Users can install with: nux pkg install ' + path.relative(process.cwd(), pkgDir));
+    } else if (subcommand === 'registry') {
+        console.log('nuxScript Package Registry');
+        console.log('  URL: https://github.com/Sldark23/nux-pacotes');
+        console.log('  API: https://raw.githubusercontent.com/Sldark23/nux-pacotes/master/api-packages.json');
+        console.log('');
+        console.log('Usage:');
+        console.log('  nux pkg install std::<package>   Install from registry');
+        console.log('  nux pkg search <query>           Search registry');
+        console.log('');
+        // Fetch and display available packages
+        pkgManager.fetchRegistryIndex().then(index => {
+            if (index && index.packages) {
+                console.log(`Available packages (${index.packages.length}):`);
+                for (const pkg of index.packages) {
+                    console.log(`  ${pkg.name}@${pkg.version} - ${pkg.description}`);
+                }
+            }
+        }).catch(() => {
+            console.log('Could not fetch registry index. Check your internet connection.');
+        });
     } else {
         console.error(`Unknown pkg action: ${subcommand}`);
-        console.log('Available actions: install, list, remove, update, search, info, create');
+        console.log('Available actions: install, list, remove, update, search, info, create, registry');
         process.exit(1);
     }
 } else if (command === 'init') {

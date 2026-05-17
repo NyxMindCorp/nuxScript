@@ -118,7 +118,16 @@ class CodeGenerator {
             
             case 'MatchCase':
                 return this.generate(node.pattern) + ' -> ' + this.generate(node.body);
-            
+
+            case 'TraitDeclaration':
+                return this.generateTrait(node);
+
+            case 'ImplDeclaration':
+                return this.generateImpl(node);
+
+            case 'ExternFn':
+                return this.generateExternFn(node);
+
             default:
                 return `/* unknown node: ${node.type} */`;
         }
@@ -392,6 +401,63 @@ class CodeGenerator {
 
     generateIndexExpr(node) {
         return this.generate(node.object) + '[' + this.generate(node.index) + ']';
+    }
+
+    generateTrait(node) {
+        let result = 'trait ' + node.name + '\n';
+        this.currentIndent += this.indent;
+
+        for (const method of node.methods || []) {
+            result += this.currentIndent + 'fn ' + method.name + '(';
+            result += (method.params || []).map(p => {
+                let s = p.name;
+                if (p.typeAnnotation) s += ' :: ' + this.generateTypeAnnotation(p.typeAnnotation);
+                return s;
+            }).join(', ');
+            result += ')';
+            if (method.returnType) {
+                result += ' -> ' + this.generateTypeAnnotation(method.returnType);
+            }
+            result += '\n';
+        }
+
+        this.currentIndent = this.currentIndent.slice(0, -this.indent.length);
+        result += 'end';
+        return result;
+    }
+
+    generateImpl(node) {
+        let result = 'impl ' + node.traitName + ' for ' + node.typeName + '\n';
+        this.currentIndent += this.indent;
+
+        for (const method of node.methods || []) {
+            result += this.currentIndent + 'fn ' + method.name + '(';
+            result += (method.params || []).map(p => {
+                let s = p.name;
+                if (p.typeAnnotation) s += ' :: ' + this.generateTypeAnnotation(p.typeAnnotation);
+                return s;
+            }).join(', ');
+            result += ')\n';
+            result += this.generateBlock(method.body) + '\n';
+        }
+
+        this.currentIndent = this.currentIndent.slice(0, -this.indent.length);
+        result += 'end';
+        return result;
+    }
+
+    generateExternFn(node) {
+        let result = 'extern ' + (node.lang || 'js') + ' ' + node.name + '(';
+        result += (node.params || []).map(p => {
+            let s = p.name;
+            if (p.typeAnnotation) s += ' :: ' + this.generateTypeAnnotation(p.typeAnnotation);
+            return s;
+        }).join(', ');
+        result += ')';
+        if (node.returnType) {
+            result += ' -> ' + this.generateTypeAnnotation(node.returnType);
+        }
+        return result;
     }
 
     generateTypeAnnotation(type) {

@@ -1,0 +1,7 @@
+# Test: Utility functions
+let data = [1, 2, 3, 4, 5]
+let filtered = data |> filter(. > 2)
+let mapped = filtered |> map(. * 10)
+
+print("Filtered: " + filtered.to_string())
+print("Mapped: " + mapped.to_string())

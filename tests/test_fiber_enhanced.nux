@@ -1,0 +1,29 @@
+# Test: Enhanced Fibers
+let counter = fiber {
+    let i = 0
+    while i < 3 {
+        yield i
+        i = i + 1
+    }
+    "done"
+}
+
+match resume(counter) {
+    {status: "running", value: v} -> print("yielded: " + v.to_string())
+    {status: "finished", value: v} -> print("finished: " + v.to_string())
+}
+
+match resume(counter) {
+    {status: "running", value: v} -> print("yielded: " + v.to_string())
+    {status: "finished", value: v} -> print("finished: " + v.to_string())
+}
+
+match resume(counter) {
+    {status: "running", value: v} -> print("yielded: " + v.to_string())
+    {status: "finished", value: v} -> print("finished: " + v.to_string())
+}
+
+match resume(counter) {
+    {status: "running", value: v} -> print("yielded: " + v.to_string())
+    {status: "finished", value: v} -> print("finished: " + v.to_string())
+}

@@ -7,7 +7,7 @@
     "nuxscript": "bin/nux.js",
     "nux": "bin/nux.js"
   },
-    "scripts": {
+  "scripts": {
     "test": "for f in tests/*.nux; do echo \"Testing $f\"; node bin/nux.js run \"$f\" || exit 1; done",
     "start": "node bin/nux.js"
   },
@@ -40,6 +40,14 @@
     }
   },
   "dependencies": {
-    "@iarna/toml": "^1.7.1"
+    "@iarna/toml": "^1.7.1",
+    "discord.js": "^14.26.4"
+  },
+  "devDependencies": {
+    "@types/axios": "^0.14.4",
+    "@types/dotenv": "^8.2.3",
+    "@types/node": "^25.7.0",
+    "axios": "^1.16.0",
+    "typescript": "^6.0.3"
   }
 }
