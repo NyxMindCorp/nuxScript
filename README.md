@@ -339,7 +339,7 @@ See [SPEC.md](./SPEC.md) for full language specification.
 
 - **npm**: https://npmjs.com/package/nuxscript-lib
 - **GitHub**: https://github.com/NyxMindCorp/nuxScript
-- **Documentation**: https://nyxmindcorp.github.io/nuxScript/docs/
+- **Documentation**: https://nux-script-docs.vercel.app/
 
 ## License
 
