@@ -537,7 +537,7 @@ class Parser {
             returnType = this.parseTypeAnnotation();
         }
 
-        return new (require('../ast/nodes').ExternFn)(name, params, returnType, name);
+        return new (require('../ast/nodes').ExternFn)(name, params, returnType, name, lang);
     }
 
     parseUseStatement() {

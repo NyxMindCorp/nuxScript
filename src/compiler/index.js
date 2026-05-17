@@ -257,6 +257,8 @@ class Compiler {
                 return this.compileImpl(node);
             case NODE_TYPES.EXTERN_FN:
                 return this.compileExternFn(node);
+            case NODE_TYPES.EXPORT:
+                return this.compileExport(node);
             default:
                 throw new Error(`Unknown node type: ${node.type}`);
         }
@@ -919,6 +921,7 @@ class Compiler {
         const externInfo = {
             name: node.name,
             nativeName: node.nativeName || node.name,
+            lang: node.lang || 'js',
             params: node.params.map(p => p.name),
             returnType: node.returnType,
         };
@@ -927,6 +930,12 @@ class Compiler {
         this.emit(OPCODES.LOAD_VAR, 'extern_loader');
         this.emit(OPCODES.CALL, 1);
         this.emit(OPCODES.STORE_VAR, node.name);
+    }
+
+    compileExport(node) {
+        // Export is handled at the module level by the module loader.
+        // At the compiler level, exports expose the variable to the module scope.
+        this.emit(OPCODES.LOAD_VAR, node.name);
     }
 
 }

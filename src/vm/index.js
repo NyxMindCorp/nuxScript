@@ -356,11 +356,91 @@ const builtins = {
                 };
             }
         } catch (e) {
-            // Fallback: create a wrapper function
+            // Fallback: try global scope
+            if (typeof global[nativeName] === 'function') {
+                return global[nativeName];
+            }
             return function(...args) {
                 throw new Error(`Extern function '${nativeName}' not available`);
             };
         }
+    },
+
+    // Discord API builtins
+    discord_webhook_send: (url, content) => {
+        const https = require('https');
+        const data = JSON.stringify({ content });
+        const parsedUrl = new URL(url);
+        let result = null, error = null, done = false;
+        const req = https.request({
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+        }, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => { result = { status: res.statusCode, body }; done = true; });
+        });
+        req.on('error', e => { error = e; done = true; });
+        req.write(data);
+        req.end();
+        const start = Date.now();
+        while (!done && Date.now() - start < 15000) {}
+        if (error) throw error;
+        return result;
+    },
+    discord_webhook_embed: (url, title, description, color) => {
+        const https = require('https');
+        const embed = { title, description };
+        if (color) embed.color = color;
+        const data = JSON.stringify({ embeds: [embed] });
+        const parsedUrl = new URL(url);
+        let result = null, error = null, done = false;
+        const req = https.request({
+            hostname: parsedUrl.hostname,
+            path: parsedUrl.pathname + parsedUrl.search,
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(data) }
+        }, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => { result = { status: res.statusCode, body }; done = true; });
+        });
+        req.on('error', e => { error = e; done = true; });
+        req.write(data);
+        req.end();
+        const start = Date.now();
+        while (!done && Date.now() - start < 15000) {}
+        if (error) throw error;
+        return result;
+    },
+    discord_api_request: (endpoint, method, body, token) => {
+        const https = require('https');
+        const data = body ? JSON.stringify(body) : null;
+        let result = null, error = null, done = false;
+        const req = https.request({
+            hostname: 'discord.com',
+            path: '/api/v10' + endpoint,
+            method: method || 'GET',
+            headers: {
+                'Authorization': 'Bot ' + token,
+                'Content-Type': 'application/json',
+                'User-Agent': 'nuxScript/4.0',
+                ...(data ? { 'Content-Length': Buffer.byteLength(data) } : {})
+            }
+        }, (res) => {
+            let body = '';
+            res.on('data', chunk => body += chunk);
+            res.on('end', () => { result = { status: res.statusCode, body }; done = true; });
+        });
+        req.on('error', e => { error = e; done = true; });
+        if (data) req.write(data);
+        req.end();
+        const start = Date.now();
+        while (!done && Date.now() - start < 15000) {}
+        if (error) throw error;
+        return result;
     },
 
     // Fiber system enhancement

@@ -456,8 +456,8 @@ class ExternDeclaration extends ASTNode {
 }
 
 class ExternFn extends ASTNode {
-    constructor(name, params, returnType, nativeName = null) {
-        super(NODE_TYPES.EXTERN_FN, { name, params, returnType, nativeName });
+    constructor(name, params, returnType, nativeName = null, lang = 'js') {
+        super(NODE_TYPES.EXTERN_FN, { name, params, returnType, nativeName, lang });
     }
 }
 
